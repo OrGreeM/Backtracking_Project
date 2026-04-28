@@ -56,7 +56,8 @@ class Maze:
         return passable
 
 
-    def __str__(self):
+    def __str__(self, path=None):
+        path_set = set(path) if path else set()
         res = []
         for r in range(self.height):
             row_str = ""
@@ -67,6 +68,8 @@ class Maze:
                     row_str += "AA"
                 elif current_p == self.end_point:
                     row_str += "BB"
+                elif current_p in path_set:
+                    row_str += "··"
                 elif self.grid[r][c] == 1:
                     row_str += "██"
                 else:
