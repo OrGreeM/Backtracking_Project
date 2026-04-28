@@ -26,6 +26,9 @@ class Maze:
 
         self.grid = [[1 for _ in range(width)] for _ in range(height)]
 
+        self.start_point = Point(1,1)
+        self.end_point = Point(height-2,width-2)
+
     def is_in_bounds(self, point: Point) -> bool:
         if not isinstance(point, Point):
             return False
@@ -55,8 +58,19 @@ class Maze:
 
     def __str__(self):
         res = []
-        for row in self.grid:
-            row_str = "".join(["██" if cell == 1 else "  " for cell in row])
+        for r in range(self.height):
+            row_str = ""
+            for c in range(self.width):
+                current_p = Point(r, c)
+
+                if current_p == self.start_point:
+                    row_str += "AA"
+                elif current_p == self.end_point:
+                    row_str += "BB"
+                elif self.grid[r][c] == 1:
+                    row_str += "██"
+                else:
+                    row_str += "  "
             res.append(row_str)
         return "\n".join(res)
 
