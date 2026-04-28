@@ -1,6 +1,6 @@
 from models import Maze, Point
 from generator import MazeGenerator
-
+from collections import deque
 
 
 class MazeSolver:
@@ -34,21 +34,34 @@ class MazeSolver:
 
 class OptimizedMazeSolver(MazeSolver):
     def _apply_dead_end_filling(self):
-        while True:
-            changed = False
+        dead_ends = deque()
 
-            for i in range(1, self.maze.height-1):
-                for k in range(1, self.maze.width-1):
-                    point = Point(i, k)
-                    if point in (self.maze.start_point, self.maze.end_point):
-                        continue
-                    if not self.maze.is_wall(point):
-                        passable = self.maze.get_passable_neighbours(point)
-                        if len(passable) == 1:
-                            self.maze.set_wall(point)
-                            changed = True
-            if not changed:
-                break
+        for i in range(1, self.maze.height - 1):
+            for k in range(1, self.maze.width - 1):
+
+                point = Point(i, k)
+                if self.maze.is_wall(point):
+                    continue
+                if point in (self.maze.start_point, self.maze.end_point):
+                    continue
+
+                passable = self.maze.get_passable_neighbours(point)
+                if len(passable) == 1:
+                    #self.maze.set_wall(point)
+                    dead_ends.append(point)
+
+        while dead_ends:
+            current = dead_ends.popleft()
+
+            passable = self.maze.get_passable_neighbours(current)
+            if not passable:
+                continue
+            self.maze.set_wall(current)
+            n = passable[0]
+            if n in (self.maze.start_point, self.maze.end_point):
+                continue
+            if len(self.maze.get_passable_neighbours(n)) == 1:
+                dead_ends.append(n)
 
     def solve(self):
         self._apply_dead_end_filling()

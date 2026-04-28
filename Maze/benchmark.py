@@ -9,14 +9,15 @@ if __name__ == "__main__":
     sys.setrecursionlimit(100_000)
 
     print("Генерація лабіринту...")
-    generator = MazeGenerator(101, 101)
+    generator = MazeGenerator(401, 401)
     original_maze = generator.generate()
 
     # --- СТВОРЮЄМО ЦИКЛИ ---
-    walls_to_break = 1000
+    walls_to_break = 10000
     print(f"Ламаємо {walls_to_break} стін для створення циклів...")
     original_maze.break_random_walls(walls_to_break)
 
+    print(original_maze)
     # Тепер копіюємо "зіпсований" лабіринт для обох алгоритмів
     maze_for_classic = copy.deepcopy(original_maze)
     maze_for_optimized = copy.deepcopy(original_maze)
