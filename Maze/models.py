@@ -55,9 +55,8 @@ class Maze:
         x = point.x
         y = point.y
         for xr, yr in [(-1,0), (1,0), (0,1), (0,-1)]:
-            n_p = Point(xr+x, yr+y)
-            if not self.is_wall(n_p):
-                passable.append(n_p)
+            if self.grid[xr+x][yr+y] == 0:
+                passable.append(Point(xr+x, yr+y))
         return passable
 
     def break_random_walls(self, count: int):

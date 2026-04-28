@@ -60,7 +60,7 @@ class SmartMazeSolver(MazeSolver):
     def _get_ordered_neighbours(self, point: Point) -> list[Point]:
         passable = self.maze.get_passable_neighbours(point)
         end = self.maze.end_point
-        return sorted(passable, key=lambda p: abs(p.x - end.x) + abs(p.y - end.y))
+        return sorted(passable, key=lambda p: (abs(p.x - end.x) + abs(p.y - end.y)))
 
 
     def _backtrack(self, current_point: Point) -> bool:
