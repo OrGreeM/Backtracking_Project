@@ -10,16 +10,6 @@ if __name__ == "__main__":
     sys.setrecursionlimit(h * w)
 
     print("Генерація лабіринту...")
-<<<<<<< Updated upstream
-    generator = MazeGenerator(101, 101)
-    original_maze = generator.generate()
-
-    # --- СТВОРЮЄМО ЦИКЛИ ---
-    walls_to_break = 1000
-    print(f"Ламаємо {walls_to_break} стін для створення циклів...")
-    original_maze.break_random_walls(walls_to_break)
-
-=======
     generator = MazeGenerator(h, w)
     original_maze = generator.generate()
 
@@ -31,7 +21,6 @@ if __name__ == "__main__":
     #print(original_maze)
 
 
->>>>>>> Stashed changes
     # Тепер копіюємо "зіпсований" лабіринт для обох алгоритмів
     maze_for_classic = copy.deepcopy(original_maze)
     maze_for_smart = copy.deepcopy(original_maze)
