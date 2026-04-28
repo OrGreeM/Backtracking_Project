@@ -1,4 +1,4 @@
-
+from random import randint
 
 class Point:
     def __init__(self, x, y):
@@ -45,6 +45,11 @@ class Maze:
         if self.is_in_bounds(point):
             self.grid[point.x][point.y] = 0
 
+    def set_wall(self, point):
+        if self.is_in_bounds(point):
+            self.grid[point.x][point.y] = 1
+
+
     def get_passable_neighbours(self, point: Point) -> list[Point]:
         passable = []
         x = point.x
@@ -55,6 +60,16 @@ class Maze:
                 passable.append(n_p)
         return passable
 
+    def break_random_walls(self, count: int):
+        walls_broken = 0
+        while walls_broken < count:
+            r = randint(1, self.height-2)
+            c = randint(1, self.width-2)
+            point = Point(r,c)
+
+            if self.is_wall(point):
+                self.set_passable(point)
+                walls_broken += 1
 
     def __str__(self, path=None):
         path_set = set(path) if path else set()
