@@ -1,5 +1,12 @@
 """
-not oriented graph implementation
+Implementation of graph
+
+Graph follows be next rules:
+    1. Graph contains dictionary, where each pair is
+    Key of vertex : vertex
+    2. Each vertex is contain inforamtion of its key and neighboors
+    3. Graph is not weighted
+    4. Graph is non oriented
 """
 
 class Vertex:
@@ -7,25 +14,18 @@ class Vertex:
 
     def __init__(self, key:int | str):
         self.key = key
-        self.neighbors: dict = {} # where key is vertex and value is weight
+        self.neighbors: dict = {} # where key is vertex' key and value is vertex
 
-    def add_neighbor(self, other: 'Vertex', weight:any=0):
-        """Record an edge to other with the given weight (default 0)."""
-        self.neighbors[other] = weight
+    def add_neighbor(self, other: 'Vertex'):
+        """Record an edge to other with the given weight."""
+        self.neighbors[other.key] = other
 
     def get_neighbors(self):
         """Return neighbor vertices (adjacency map keys)."""
-        return self.neighbors.keys()
-
-    def get_neighbor(self, other:'Vertex'):
-        """Return the weight to other, or None if not adjacent."""
-        return self.neighbors.get(other, None)
-
-    def __repr__(self):
-        return f"Vertex({self.key!r})"
+        return self.neighbors.values()
 
     def __str__(self):
-        pairs = [(x.key, self.neighbors[x]) for x in self.neighbors]
+        pairs = list(self.neighbors)
         return f"{self.key} connected to: {pairs}"
 
     def __hash__(self):
@@ -47,7 +47,7 @@ class Graph:
             self.vertices[key] = Vertex(key)
         return self.vertices[key]
 
-    def add_edge(self, key1:int|str, key2:int|str, weight:any=0):
+    def add_edge(self, key1:int|str, key2:int|str):
         """Add a non directed edge: (key1, key2)"""
 
         if key1 not in self.vertices:
@@ -56,8 +56,8 @@ class Graph:
         if key2 not in self.vertices:
             self.add_vertex(key2)
 
-        self.vertices[key1].add_neighbor(self.vertices[key2], weight)
-        self.vertices[key2].add_neighbor(self.vertices[key1], weight)
+        self.vertices[key1].add_neighbor(self.vertices[key2])
+        self.vertices[key2].add_neighbor(self.vertices[key1])
 
     def get_vertex(self, key:int | str):
         """Return the Vertex for key, or None."""
@@ -70,5 +70,12 @@ class Graph:
     def __iter__(self):
         return iter(self.vertices.values())
 
-    def __contains__(self, key:any):
+    def __contains__(self, key:int | str):
         return key in self.vertices
+
+    def __str__(self):
+        result = []
+        for vertex in self:
+            result.append(str(vertex))
+
+        return '\n'.join(result)
