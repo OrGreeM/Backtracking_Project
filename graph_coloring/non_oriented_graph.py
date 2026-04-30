@@ -5,12 +5,12 @@ not oriented graph implementation
 class Vertex:
     """Vertex identified by a key, with weighted edges to neighbors."""
 
-    def __init__(self, key):
-        self.key: any = key
-        self.neighbors: dict[Vertex, any] = {}
+    def __init__(self, key:int | str):
+        self.key = key
+        self.neighbors: dict = {} # where key is vertex and value is weight
 
     def add_neighbor(self, other: 'Vertex', weight:any=0):
-        """Record an edge to ``other`` with the given weight (default 0)."""
+        """Record an edge to other with the given weight (default 0)."""
         self.neighbors[other] = weight
 
     def get_neighbors(self):
@@ -18,7 +18,7 @@ class Vertex:
         return self.neighbors.keys()
 
     def get_neighbor(self, other:'Vertex'):
-        """Return the weight to ``other``, or ``None`` if not adjacent."""
+        """Return the weight to other, or None if not adjacent."""
         return self.neighbors.get(other, None)
 
     def __repr__(self):
@@ -36,35 +36,31 @@ class Vertex:
 
 
 class Graph:
-    """Adjacency-list graph: vertices keyed by user labels (e.g. strings)."""
+    """Adjacency-list graph: vertices keyed by user labels"""
 
     def __init__(self):
-        self.vertices: dict[any, Vertex] = {}
+        self.vertices: dict = {} # where key is key of vertex and value is vertex
 
-    def add_vertex(self, key:any):
-        """Insert ``key`` if missing and return the ``Vertex`` for that key."""
+    def add_vertex(self, key:int | str):
+        """Insert key if missing and return the Vertex for that key."""
         if key not in self.vertices:
             self.vertices[key] = Vertex(key)
         return self.vertices[key]
 
-    def add_edge(self, vertex1:Vertex, vertex2:Vertex, weight:any=0):
-        """Add a non directed edge ``vertex1`` - ``vertex2``"""
+    def add_edge(self, key1:int|str, key2:int|str, weight:any=0):
+        """Add a non directed edge: (key1, key2)"""
 
-        vertex1.add_neighbor(vertex2, weight)
-        vertex2.add_neighbor(vertex1, weight)
+        if key1 not in self.vertices:
+            self.add_vertex(key1)
 
+        if key2 not in self.vertices:
+            self.add_vertex(key2)
 
-    def remove_vertex(self, key:any):
-        """Remove the vertex ``key`` and any incident edges."""
-        vertex_to_remove = self.get_vertex(key)
-        if vertex_to_remove:
-            for vertex in self.vertices.values():
-                vertex.neighbors.pop(vertex_to_remove, None)
-            del self.vertices[key]
+        self.vertices[key1].add_neighbor(self.vertices[key2], weight)
+        self.vertices[key2].add_neighbor(self.vertices[key1], weight)
 
-
-    def get_vertex(self, key:any):
-        """Return the ``Vertex`` for ``key``, or ``None``."""
+    def get_vertex(self, key:int | str):
+        """Return the Vertex for key, or None."""
         return self.vertices.get(key, None)
 
     def get_vertices(self):
