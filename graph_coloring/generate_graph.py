@@ -6,7 +6,21 @@ from graph import Graph
 
 
 def generate_graph(number_of_vertices:int, chance_of_edge_generation:float | int) -> Graph:
-    """...."""
+    """
+    Generates a random undirected graph.
+
+    Vertices are labeled from 0 to `number_of_vertices` - 1.
+    For each pair of distinct vertices, an edge is added
+    with probability `chance_of_edge_generation`.
+
+    Args:
+        number_of_vertices (int): Number of vertices in the graph.
+        chance_of_edge_generation (float | int): Probability of creating an edge
+            between two vertices (value between 0 and 1).
+
+    Returns:
+        Graph: A randomly generated graph with edges.
+    """
     graph = Graph()
 
     for k in range(number_of_vertices):

@@ -21,8 +21,8 @@ class Vertex:
         self.neighbors[other.key] = other
 
     def get_neighbors(self):
-        """Return neighbor vertices (adjacency map keys)."""
-        return self.neighbors.values()
+        """Return neighbors' keys"""
+        return self.neighbors.keys()
 
     def __str__(self):
         pairs = list(self.neighbors)
