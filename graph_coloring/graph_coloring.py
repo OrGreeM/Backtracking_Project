@@ -7,8 +7,10 @@ to its vertices such that no adjacent vertices share the same color.
 
 from generate_graph import generate_graph
 from graph import Graph, Vertex
+from graph_converter import convert
 
-def main(n:int, p:int|float, k:int, graph:Graph=None):
+def main(n:int, p:int|float, k:int, graph:Graph|list[list[int]]=None):
+    #TODO: змінити застарілу документацію і type hints
     """
     Generates a graph (if not provided) and attempts to color it with k colors.
 
@@ -27,7 +29,7 @@ def main(n:int, p:int|float, k:int, graph:Graph=None):
 
     else:
         #TODO: Реалізувати функціонал, коли користувач передає свій граф
-        pass
+        convert(graph)
 
     return graph, color_graph(k, graph)
 
