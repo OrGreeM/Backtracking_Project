@@ -6,7 +6,7 @@ from generator import MazeGenerator
 from solvers import MazeSolver, OptimizedMazeSolver, SmartMazeSolver
 
 if __name__ == "__main__":
-    h = w = 15
+    h = w = 21
     sys.setrecursionlimit(h * w)
 
     print("Генерація лабіринту...")
@@ -18,8 +18,7 @@ if __name__ == "__main__":
     print(f"Ламаємо {walls_to_break} стін для створення циклів...")
     original_maze.break_random_walls(walls_to_break)
 
-    #print(original_maze)
-
+    print(original_maze)
 
     # Тепер копіюємо "зіпсований" лабіринт для обох алгоритмів
     maze_for_classic = copy.deepcopy(original_maze)

@@ -30,6 +30,33 @@ class MazeSolver:
                 if res:
                     return True
         self.path.pop()
+
+        return False
+
+    def solve_generator(self):
+        """Точка входу для анімації, повертає генератор."""
+        self.path = []
+        self.visited = set()
+        yield from self._backtrack_generator(self.maze.start_point)
+
+    def _backtrack_generator(self, current_point: Point):
+        self.visited.add(current_point)
+        self.path.append(current_point)
+
+        yield {"current": current_point, "visited": set(self.visited), "path": list(self.path)}
+
+        if current_point == self.maze.end_point:
+            return True
+
+        cur_neigh = self.maze.get_passable_neighbours(current_point)
+        for neigh in cur_neigh:
+            if neigh not in self.visited:
+                res = yield from self._backtrack_generator(neigh)
+                if res:
+                    return True
+
+        self.path.pop()
+        yield {"current": current_point, "visited": set(self.visited), "path": list(self.path)}
         return False
 
 class OptimizedMazeSolver(MazeSolver):
@@ -78,6 +105,30 @@ class SmartMazeSolver(MazeSolver):
                     return True
         self.path.pop()
         return False
+
+    def _backtrack_generator(self, current_point: Point):
+        self.visited.add(current_point)
+        self.path.append(current_point)
+
+        yield {"current": current_point, "visited": set(self.visited), "path": list(self.path)}
+
+        if current_point == self.maze.end_point:
+            return True
+
+        cur_neigh = self._get_ordered_neighbours(current_point)
+        for neigh in cur_neigh:
+            if neigh not in self.visited:
+                res = yield from self._backtrack_generator(neigh)
+                if res:
+                    return True
+
+        self.path.pop()
+        yield {"current": current_point, "visited": set(self.visited), "path": list(self.path)}
+        return False
+
+
+
+
 
 # if __name__ == "__main__":
 #     import sys

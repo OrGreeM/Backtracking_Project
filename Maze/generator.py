@@ -1,5 +1,6 @@
 from models import Maze, Point
 import random
+
 class MazeGenerator:
     def __init__(self, height, width):
         if not height % 2 or not width% 2:
