@@ -1,20 +1,23 @@
 """
-Implementation of graph
+Implementation of graph.
 
-Graph follows be next rules:
-    1. Graph contains dictionary, where each pair is
-    Key of vertex : vertex
-    2. Each vertex is contain inforamtion of its key and neighboors
-    3. Graph is not weighted
-    4. Graph is non oriented
+The graph follows these rules:
+    1. The graph stores vertices in a dictionary:
+       key -> Vertex instance
+    2. Each vertex contains its key and references to its neighbors
+    3. The graph is unweighted
+    4. The graph is undirected
 """
 
 class Vertex:
-    """Vertex identified by a key, with weighted edges to neighbors."""
+    """
+    Represents a single vertex in an unweighted, undirected graph.
+    Each vertex stores its key and references to neighboring vertices.
+    """
 
     def __init__(self, key:int | str):
         self.key = key
-        self.neighbors: dict = {} # where key is vertex' key and value is vertex
+        self.neighbors: dict = {} # where key is key of vertex and value is vertex
 
     def add_neighbor(self, other: 'Vertex'):
         """Record an edge to other with the given weight."""
@@ -36,7 +39,14 @@ class Vertex:
 
 
 class Graph:
-    """Adjacency-list graph: vertices keyed by user labels"""
+    """
+    Represents an unweighted, undirected graph.
+
+    Stores vertices in a dictionary:
+        key -> Vertex instance
+
+    Provides methods to add vertices, add edges, and access graph data.
+    """
 
     def __init__(self):
         self.vertices: dict = {} # where key is key of vertex and value is vertex
