@@ -33,14 +33,14 @@ def convert(list_of_contiguity: list[list[int]]) -> Graph:
 
 
 if __name__ == '__main__':
-    l_of_c = [[0,0,1,0,1],
+    adjacency_matrix = [[0,0,1,0,1],
               [0,0,0,0,1],
               [1,0,0,1,1],
               [0,0,1,0,1],
               [1,1,1,1,0]
     ]
 
-    g = convert(l_of_c)
+    g = convert(adjacency_matrix)
 
-    print(l_of_c)
+    print(adjacency_matrix)
     print(g)

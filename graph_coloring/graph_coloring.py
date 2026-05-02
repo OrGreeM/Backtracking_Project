@@ -104,3 +104,19 @@ if __name__ == '__main__':
     g, colored_graph = main(v_num, chance, c_num)
     print(g)
     print(colored_graph)
+
+    adjacency_matrix = [[0,1,0,1,1,0,0,1,0,0],
+                        [1,0,1,0,1,1,0,0,0,0],
+                        [0,1,0,0,1,1,0,1,0,0],
+                        [1,0,0,0,0,0,1,0,0,0],
+                        [1,1,1,0,0,0,1,1,1,0],
+                        [0,1,1,0,0,0,0,0,1,1],
+                        [0,1,0,0,1,0,0,0,0,0],
+                        [1,0,1,0,1,0,0,0,1,0],
+                        [0,0,0,0,1,1,0,1,0,1],
+                        [0,0,0,0,0,1,0,0,1,0]
+    ]
+
+    g, colored_graph = main(0,0, 10, adjacency_matrix)
+    print(g)
+    print(colored_graph)
