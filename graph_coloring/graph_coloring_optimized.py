@@ -30,7 +30,6 @@ def main(n:int, p:int|float, k:int, graph:Graph|list[list[int]]=None):
         graph = generate_graph(n, p)
 
     else:
-        #TODO: Реалізувати функціонал, який перевіряє валідність графу
         graph = convert(graph)
 
     return graph, color_graph(k, graph)
