@@ -3,7 +3,7 @@ module helps to convert an adjacency matrix
 to self implementation of graph in module graph.py
 """
 
-from graph import Graph
+from graph_coloring.graph import Graph
 
 def convert(list_of_contiguity: list[list[int]]) -> Graph:
     """

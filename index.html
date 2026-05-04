@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Backtracking Visualizer</title>
+    <!-- Stlite CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.63.1/build/stlite.css" />
+</head>
+<body>
+    <div id="root"></div>
+    <!-- Stlite JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.63.1/build/stlite.js"></script>
+    <script>
+        stlite.mount(
+            {
+                requirements: ["matplotlib", "networkx", "pandas", "numpy"],
+                entrypoint: "app.py",
+                files: {
+                    "app.py": { url: "app.py?v=2" },
+                    "visualizers/__init__.py": { url: "visualizers/__init__.py?v=2" },
+                    "visualizers/sudoku_vis.py": { url: "visualizers/sudoku_vis.py?v=2" },
+                    "visualizers/maze_vis.py": { url: "visualizers/maze_vis.py?v=2" },
+                    "visualizers/graph_vis.py": { url: "visualizers/graph_vis.py?v=2" },
+                    "visualizers/benchmark_vis.py": { url: "visualizers/benchmark_vis.py?v=2" },
+                    
+                    // Core files
+                    "sudoku/__init__.py": { url: "sudoku/__init__.py?v=2" },
+                    "sudoku/sudoku.py": { url: "sudoku/sudoku.py?v=2" },
+                    
+                    "Maze/__init__.py": { url: "Maze/__init__.py?v=2" },
+                    "Maze/models.py": { url: "Maze/models.py?v=2" },
+                    "Maze/solvers.py": { url: "Maze/solvers.py?v=2" },
+                    "Maze/generator.py": { url: "Maze/generator.py?v=2" },
+                    
+                    "graph_coloring/__init__.py": { url: "graph_coloring/__init__.py?v=2" },
+                    "graph_coloring/graph.py": { url: "graph_coloring/graph.py?v=2" },
+                    "graph_coloring/graph_coloring.py": { url: "graph_coloring/graph_coloring.py?v=2" },
+                    "graph_coloring/generate_graph.py": { url: "graph_coloring/generate_graph.py?v=2" },
+                    "graph_coloring/graph_converter.py": { url: "graph_coloring/graph_converter.py?v=2" }
+                }
+            },
+            document.getElementById("root")
+        );
+    </script>
+</body>
+</html>

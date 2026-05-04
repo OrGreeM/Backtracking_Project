@@ -6,27 +6,24 @@ from generator import MazeGenerator
 from solvers import MazeSolver, OptimizedMazeSolver, SmartMazeSolver
 
 if __name__ == "__main__":
-    h = w = 21
+    h = w = 401
     sys.setrecursionlimit(h * w)
 
     print("Генерація лабіринту...")
     generator = MazeGenerator(h, w)
     original_maze = generator.generate()
 
-    # --- СТВОРЮЄМО ЦИКЛИ ---
     walls_to_break = h * w // 100
     print(f"Ламаємо {walls_to_break} стін для створення циклів...")
     original_maze.break_random_walls(walls_to_break)
 
-    print(original_maze)
+    #print(original_maze)
 
-    # Тепер копіюємо "зіпсований" лабіринт для обох алгоритмів
     maze_for_classic = copy.deepcopy(original_maze)
     maze_for_smart = copy.deepcopy(original_maze)
     maze_for_optimized = copy.deepcopy(original_maze)
 
 
-    # --- 1. Класичний алгоритм ---
     classic_solver = MazeSolver(maze_for_classic)
 
     start_time_classic = time.perf_counter()
@@ -40,7 +37,6 @@ if __name__ == "__main__":
     print(f"Час виконання: {time_classic_ms:.4f} мс")
     print(f"Довжина знайденого шляху: {len(classic_solver.path)}")
 
-    # 3
 
     sm_solver = SmartMazeSolver(maze_for_smart)
 
@@ -54,19 +50,18 @@ if __name__ == "__main__":
     print(f"Загальний час виконання (з обробкою): {time_sm_ms:.4f} мс")
     print(f"Довжина знайденого шляху: {len(sm_solver.path)}")
 
-    # --- 2. Оптимізований алгоритм (Dead-end filling) ---
-    opt_solver = OptimizedMazeSolver(maze_for_optimized)
+    # opt_solver = OptimizedMazeSolver(maze_for_optimized)
 
-    start_time_opt = time.perf_counter()
-    opt_solver.solve()
-    end_time_opt = time.perf_counter()
+    # start_time_opt = time.perf_counter()
+    # opt_solver.solve()
+    # end_time_opt = time.perf_counter()
 
-    time_opt_ms = (end_time_opt - start_time_opt) * 1000
+    # time_opt_ms = (end_time_opt - start_time_opt) * 1000
 
-    print("\n--- Запуск оптимізованого алгоритму (Dead-end filling) ---")
-    print(f"Відвідано клітинок (під час пошуку): {len(opt_solver.visited)}")
-    print(f"Загальний час виконання (з обробкою): {time_opt_ms:.4f} мс")
-    print(f"Довжина знайденого шляху: {len(opt_solver.path)}")
+    # print("\n--- Запуск оптимізованого алгоритму (Dead-end filling) ---")
+    # print(f"Відвідано клітинок (під час пошуку): {len(opt_solver.visited)}")
+    # print(f"Загальний час виконання (з обробкою): {time_opt_ms:.4f} мс")
+    # print(f"Довжина знайденого шляху: {len(opt_solver.path)}")
 
 
     # print(maze_for_smart.__str__(sm_solver.path))

@@ -78,6 +78,27 @@ class PureBacktracking:
                 self.backtracks += 1
         return False
 
+    def solve_visual(self, board: list[list[int]]):
+        '''Generator for visual solving'''
+        cell = find_empty(board)
+        if cell is None:
+            return True
+
+        row, col = cell
+        for num in range(1, 10):
+            self.steps += 1
+            if is_valid(board, row, col, num):
+                board[row][col] = num
+                yield (row, col, num)
+                
+                if (yield from self.solve_visual(board)):
+                    return True
+                    
+                board[row][col] = 0
+                self.backtracks += 1
+                yield (row, col, 0)
+        return False
+
 
 # Backtracking + MRV
 class BacktrackingMRV:
@@ -117,6 +138,26 @@ class BacktrackingMRV:
                 return True
             board[row][col] = 0
             self.backtracks += 1
+        return False
+
+    def solve_visual(self, board: list[list[int]]):
+        '''Generator for visual solving'''
+        cell = self.find_mrv_cell(board)
+        if cell is None:
+            return find_empty(board) is None
+
+        row, col = cell
+        for num in get_candidates(board, row, col):
+            self.steps += 1
+            board[row][col] = num
+            yield (row, col, num)
+            
+            if (yield from self.solve_visual(board)):
+                return True
+                
+            board[row][col] = 0
+            self.backtracks += 1
+            yield (row, col, 0)
         return False
 
 
@@ -182,6 +223,27 @@ class BacktrackingMRVFC:
             self.backtracks += 1
         return False
 
+    def solve_visual(self, board: list[list[int]]):
+        '''Generator for visual solving'''
+        cell = self.find_mrv_cell(board)
+        if cell is None:
+            return find_empty(board) is None
+
+        row, col = cell
+        for num in get_candidates(board, row, col):
+            self.steps += 1
+            board[row][col] = num
+            yield (row, col, num)
+            
+            if self._forward_check(board, row, col):
+                if (yield from self.solve_visual(board)):
+                    return True
+                    
+            board[row][col] = 0
+            self.backtracks += 1
+            yield (row, col, 0)
+        return False
+
 #  Greedy algorithm
 class GreedySolver:
     '''Greedy algorithm'''
@@ -229,6 +291,35 @@ class GreedySolver:
                     return True
             board[row][col] = 0
             self.backtracks += 1
+        return False
+
+    def solve_visual(self, board: list[list[int]]):
+        '''Generator for visual solving'''
+        cell, candidates = self.find_mrv_cell(board)
+        if cell is None:
+            return find_empty(board) is None
+
+        row, col = cell
+        if candidates:
+            self.steps += 1
+            board[row][col] = candidates[0]
+            yield (row, col, candidates[0])
+            
+            if (yield from self.solve_visual(board)):
+                return True
+                
+            for num in candidates[1:]:
+                self.steps += 1
+                self.backtracks += 1
+                board[row][col] = num
+                yield (row, col, num)
+                
+                if (yield from self.solve_visual(board)):
+                    return True
+                    
+            board[row][col] = 0
+            self.backtracks += 1
+            yield (row, col, 0)
         return False
 
 

@@ -2,7 +2,7 @@
 Module created for graph generation.
 """
 import random
-from graph import Graph
+from graph_coloring.graph import Graph
 
 
 def generate_graph(number_of_vertices:int, chance_of_edge_generation:float | int) -> Graph:

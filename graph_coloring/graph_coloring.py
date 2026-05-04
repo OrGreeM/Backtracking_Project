@@ -5,9 +5,9 @@ Includes utilities to generate a graph and attempt to assign colors
 to its vertices such that no adjacent vertices share the same color.
 """
 
-from generate_graph import generate_graph
-from graph import Graph, Vertex
-from graph_converter import convert
+from graph_coloring.generate_graph import generate_graph
+from graph_coloring.graph import Graph, Vertex
+from graph_coloring.graph_converter import convert
 
 def main(n:int, p:int|float, k:int, graph:Graph|list[list[int]]=None):
     """
@@ -30,8 +30,8 @@ def main(n:int, p:int|float, k:int, graph:Graph|list[list[int]]=None):
         graph = generate_graph(n, p)
 
     else:
-        #TODO: Реалізувати функціонал, який перевіряє валідність графу
-        graph = convert(graph)
+        if isinstance(graph, list):
+            graph = convert(graph)
 
     return graph, color_graph(k, graph)
 
@@ -94,6 +94,34 @@ def color_graph(k:int, graph:Graph):
         return colors
 
     return None
+
+def color_graph_visual(k:int, graph:Graph):
+    """
+    Generator that yields the current coloring state at each step.
+    """
+    colors = {}
+    vertices = list(graph.get_vertices())
+
+    def solve(index):
+        if index == len(vertices):
+            return True
+
+        vertex_key = vertices[index]
+        vertex = graph.get_vertex(vertex_key)
+        for color in range(k):
+            if _is_valid(vertex, color, colors):
+                colors[vertex_key] = color
+                yield dict(colors)
+                
+                if (yield from solve(index + 1)):
+                    return True
+
+                del colors[vertex_key]
+                yield dict(colors)
+
+        return False
+
+    yield from solve(0)
 
 if __name__ == '__main__':
     print('Choose parameters for graph generation and coloring:')
