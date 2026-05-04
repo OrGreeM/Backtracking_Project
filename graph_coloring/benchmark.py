@@ -1,6 +1,10 @@
 """
-Benchmark module that runs every coloring algorithm on every
-case from the benchmark suite, measuring time and peak memory.
+Runs every coloring algorithm on every case from the benchmark suite,
+measuring time and peak memory.
+
+For each case prints a single block:
+    - header with the graph parameters
+    - one row per algorithm: time, peak memory, colors used, expected χ
 
 Algorithms compared:
     - Simple Backtracking         (graph_coloring.color_graph)
@@ -8,14 +12,7 @@ Algorithms compared:
     - Greedy (Welsh-Powell)       (graph_coloring_baselines.greedy_color)
     - DFS coloring                (graph_coloring_baselines.dfs_color)
 
-Metrics:
-    - time     — wall-clock execution time (seconds)
-    - peak_mem — peak Python memory allocated during the run, via tracemalloc (KiB)
-    - colors   — number of distinct colors actually used (None on failure / timeout)
-
-Per-run timeout: 300 seconds. Hard timeouts are enforced via a
-worker process; if the algorithm cannot finish in time it is killed
-and the run is recorded as 'TIMEOUT'.
+Per-run timeout: 300 seconds, enforced via a child process.
 """
 
 import multiprocessing as mp
@@ -24,25 +21,23 @@ import time
 import tracemalloc
 from typing import Callable
 
+import graph_coloring
 import graph_coloring_optimized
 import graph_coloring_baselines
 from benchmark_suite import BENCHMARK_CASES
-import graph_coloring
 
-TIMEOUT_SECONDS = 300
+
+TIMEOUT_SECONDS = 1000
 
 ALGORITHMS:list[tuple[str, Callable]] = [
-    ('Simple Backtracking', graph_coloring.color_graph),
-    ('MRV + FC', graph_coloring_optimized.color_graph),
-    ('Greedy', graph_coloring_baselines.greedy_color),
-    ('DFS', graph_coloring_baselines.dfs_color),
+    ('Simple BT',     graph_coloring.color_graph),
+    ('MRV + FC',      graph_coloring_optimized.color_graph),
+    ('Greedy (W-P)',  graph_coloring_baselines.greedy_color),
+    ('DFS',           graph_coloring_baselines.dfs_color),
 ]
 
+
 def _worker(algorithm:Callable, k:int, graph, queue:mp.Queue):
-    """
-    Runs `algorithm(k, graph)` inside a child process, measuring
-    wall time and peak Python memory. Pushes a result dict onto `queue`.
-    """
     sys.setrecursionlimit(50_000)
 
     tracemalloc.start()
@@ -59,23 +54,20 @@ def _worker(algorithm:Callable, k:int, graph, queue:mp.Queue):
             'time':        elapsed,
             'peak_mem_kb': peak / 1024,
             'colors':      colors_used,
-            'solved':      result is not None,
         })
     except Exception as e:
         tracemalloc.stop()
         queue.put({
-            'status': 'error',
-            'error':  f'{type(e).__name__}: {e}',
-            'time':   time.perf_counter() - t0,
+            'status':      'error',
+            'error':       f'{type(e).__name__}: {e}',
+            'time':        time.perf_counter() - t0,
+            'peak_mem_kb': None,
+            'colors':      None,
         })
 
 
 def run_with_timeout(algorithm:Callable, k:int, graph,
                      timeout:int = TIMEOUT_SECONDS) -> dict:
-    """
-    Run an algorithm in a subprocess with a hard timeout.
-    Returns a metrics dict with 'status' in {'ok','timeout','error'}.
-    """
     ctx = mp.get_context('spawn')
     queue:mp.Queue = ctx.Queue()
     proc = ctx.Process(target=_worker, args=(algorithm, k, graph, queue))
@@ -89,126 +81,106 @@ def run_with_timeout(algorithm:Callable, k:int, graph,
         if proc.is_alive():
             proc.kill()
             proc.join()
-        return {'status': 'timeout', 'time': timeout, 'peak_mem_kb': None, 'colors': None}
+        return {'status': 'timeout', 'time': timeout,
+                'peak_mem_kb': None, 'colors': None}
 
     if not queue.empty():
         return queue.get()
 
-    return {'status': 'error', 'error': 'no result returned', 'time': None}
+    return {'status': 'error', 'error': 'no result returned',
+            'time': None, 'peak_mem_kb': None, 'colors': None}
 
 def _fmt_time(t):
     if t is None:
         return '—'
-    if t < 0.001:
-        return f'{t*1e6:.0f}µs'
+    if t < 1e-3:
+        return f'{t * 1e6:.0f} us'
     if t < 1:
-        return f'{t*1e3:.1f}ms'
-    return f'{t:.2f}s'
+        return f'{t * 1e3:.1f} ms'
+    if t < 60:
+        return f'{t:.2f} s'
+    return f'{t / 60:.1f} min'
 
 
 def _fmt_mem(kb):
     if kb is None:
         return '—'
     if kb < 1024:
-        return f'{kb:.1f}KB'
-    return f'{kb/1024:.2f}MB'
+        return f'{kb:.1f} KB'
+    return f'{kb / 1024:.2f} MB'
 
 
-def _fmt_status(metrics:dict, expected_chi:int|None) -> str:
-    """Produce a short status string for a single run."""
+def _fmt_colors(metrics):
     if metrics['status'] == 'timeout':
         return 'TIMEOUT'
     if metrics['status'] == 'error':
-        return f"ERROR ({metrics.get('error', '?')[:30]})"
-
-    colors = metrics.get('colors')
-    if colors is None:
-        return 'no solution'
-
-    marker = ''
-    if expected_chi is not None:
-        if colors == expected_chi:
-            marker = ' ✓'
-        elif colors > expected_chi:
-            marker = f' (+{colors - expected_chi})'
-        else:
-            marker = ' (!?)'
-    return f'{colors} colors{marker}'
+        return 'ERROR'
+    c = metrics.get('colors')
+    return str(c) if c is not None else 'no sol.'
 
 
-def print_case_header(name:str, n:int, m:int, k:int, chi:int|None):
-    chi_str = f'χ={chi}' if chi is not None else 'χ=?'
+def _fmt_chi(chi):
+    return str(chi) if chi is not None else '?'
+
+
+COL_ALG    = 14
+COL_TIME   = 10
+COL_MEM    = 10
+COL_COLORS = 8
+COL_CHI    = 5
+TABLE_WIDTH = COL_ALG + COL_TIME + COL_MEM + COL_COLORS + COL_CHI + 4  # 4 spaces between cols
+
+
+
+def print_case(case_name:str, n:int, m:int, k:int, chi:int|None,
+               results:dict[str, dict]):
+    chi_str = _fmt_chi(chi)
+    header = f'  {case_name}  n={n}  m={m}  k={k}  chi={chi_str}'
+
     print()
-    print(f'─── {name}  (n={n}, m={m}, k={k}, {chi_str}) ' + '─' * max(0, 25 - len(name)))
-
-
-def print_case_results(results:dict, expected_chi:int|None):
-    """Print one row per algorithm for a single case."""
-    print(f"  {'algorithm':<14} {'time':>10} {'peak mem':>11}  {'result':<20}")
-    print(f"  {'─' * 14} {'─' * 10} {'─' * 11}  {'─' * 20}")
-    for alg_name, metrics in results.items():
-        t   = _fmt_time(metrics.get('time'))
-        mem = _fmt_mem(metrics.get('peak_mem_kb'))
-        st  = _fmt_status(metrics, expected_chi)
-        print(f"  {alg_name:<14} {t:>10} {mem:>11}  {st:<20}")
-
-
-def print_summary(all_results:dict):
-    """Print a final summary table across all cases."""
-    print()
-    print('═' * 75)
-    print('  SUMMARY (time / colors-used)')
-    print('═' * 75)
-
-    alg_names = [name for name, _ in ALGORITHMS]
-    header = f"{'case':<25}" + ''.join(f"{n[:13]:>14}" for n in alg_names)
+    print('─' * TABLE_WIDTH)
     print(header)
-    print('─' * len(header))
+    print('─' * TABLE_WIDTH)
+    print(
+        f"{'algorithm':<{COL_ALG}} "
+        f"{'time':>{COL_TIME}} "
+        f"{'memory':>{COL_MEM}} "
+        f"{'colors':>{COL_COLORS}} "
+        f"{'chi':>{COL_CHI}}"
+    )
+    print(
+        f"{'-' * COL_ALG} "
+        f"{'-' * COL_TIME} "
+        f"{'-' * COL_MEM} "
+        f"{'-' * COL_COLORS} "
+        f"{'-' * COL_CHI}"
+    )
 
-    for case_name, (case_results, chi) in all_results.items():
-        row = f'{case_name:<25}'
-        for alg_name in alg_names:
-            m = case_results[alg_name]
-            if m['status'] == 'timeout':
-                cell = 'TIMEOUT'
-            elif m['status'] == 'error':
-                cell = 'ERROR'
-            elif m.get('colors') is None:
-                cell = 'fail'
-            else:
-                cell = f"{_fmt_time(m['time'])}/{m['colors']}c"
-            row += f"{cell:>14}"
-        print(row)
-
-    print('═' * 75)
-
+    for alg_name, _ in ALGORITHMS:
+        m_data = results[alg_name]
+        print(
+            f"{alg_name:<{COL_ALG}} "
+            f"{_fmt_time(m_data.get('time')):>{COL_TIME}} "
+            f"{_fmt_mem(m_data.get('peak_mem_kb')):>{COL_MEM}} "
+            f"{_fmt_colors(m_data):>{COL_COLORS}} "
+            f"{chi_str:>{COL_CHI}}"
+        )
 
 def run_benchmark():
-    print(f'Running benchmark: {len(ALGORITHMS)} algorithms × {len(BENCHMARK_CASES)} cases')
-    print(f'Per-run timeout: {TIMEOUT_SECONDS}s')
-
-    all_results = {}
+    print('=' * TABLE_WIDTH)
+    print(f'  Benchmark: {len(ALGORITHMS)} algorithms x {len(BENCHMARK_CASES)} cases')
+    print(f'  Per-run timeout: {TIMEOUT_SECONDS} s')
+    print('=' * TABLE_WIDTH)
 
     for name, graph, k, chi in BENCHMARK_CASES:
         n = len(list(graph.get_vertices()))
         m = sum(len(list(v.get_neighbors())) for v in graph) // 2
 
-        print_case_header(name, n, m, k, chi)
-
-        case_results = {}
+        results = {}
         for alg_name, alg_func in ALGORITHMS:
-            print(f'  running {alg_name}...', end=' ', flush=True)
-            metrics = run_with_timeout(alg_func, k, graph)
-            case_results[alg_name] = metrics
-            if metrics['status'] == 'ok':
-                print(f"done in {_fmt_time(metrics['time'])}")
-            else:
-                print(metrics['status'])
+            results[alg_name] = run_with_timeout(alg_func, k, graph)
 
-        print_case_results(case_results, chi)
-        all_results[name] = (case_results, chi)
-
-    print_summary(all_results)
+        print_case(name, n, m, k, chi, results)
 
 
 if __name__ == '__main__':
