@@ -55,7 +55,7 @@ def _is_valid(vertex:Vertex, color:int, colors: dict[int | str, int]) -> bool:
 
     return True
 
-def color_graph(k:int, graph:Graph):
+def color_graph(k:int, graph:Graph) -> dict[int | str, int] | None:
     """
     Attempts to color the graph using at most k colors via backtracking.
 
@@ -73,7 +73,7 @@ def color_graph(k:int, graph:Graph):
     colors = {}
     vertices = list(graph.get_vertices())
 
-    def solve(index):
+    def solve(index:int):
         if index == len(vertices):
             return True
 
@@ -94,29 +94,3 @@ def color_graph(k:int, graph:Graph):
         return colors
 
     return None
-
-if __name__ == '__main__':
-    print('Choose parameters for graph generation and coloring:')
-    v_num = int(input('Number of vertices: '))
-    chance = float(input('Chance of edge generation: '))
-    c_num = int(input('Number of colors: '))
-
-    g, colored_graph = main(v_num, chance, c_num)
-    print(g)
-    print(colored_graph)
-
-    adjacency_matrix = [[0,1,0,1,1,0,0,1,0,0],
-                        [1,0,1,0,1,1,0,0,0,0],
-                        [0,1,0,0,1,1,0,1,0,0],
-                        [1,0,0,0,0,0,1,0,0,0],
-                        [1,1,1,0,0,0,1,1,1,0],
-                        [0,1,1,0,0,0,0,0,1,1],
-                        [0,1,0,0,1,0,0,0,0,0],
-                        [1,0,1,0,1,0,0,0,1,0],
-                        [0,0,0,0,1,1,0,1,0,1],
-                        [0,0,0,0,0,1,0,0,1,0]
-    ]
-
-    g, colored_graph = main(0,0, 10, adjacency_matrix)
-    print(g)
-    print(colored_graph)

@@ -20,7 +20,7 @@ class Vertex:
         self.neighbors: dict = {} # where key is key of vertex and value is vertex
 
     def add_neighbor(self, other: 'Vertex'):
-        """Record an edge to other with the given weight."""
+        """Record an edge to other"""
         self.neighbors[other.key] = other
 
     def get_neighbors(self):
