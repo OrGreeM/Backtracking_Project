@@ -81,12 +81,3 @@ BENCHMARK_CASES = [
     ('random_huge',           generate_graph(500, 0.3, seed=7),      30,  None),
     ('random_huge_dense',     generate_graph(500, 0.5, seed=8),      80,  None),
 ]
-
-
-if __name__ == '__main__':
-    print(f"{'name':<25} {'n':>5} {'expected χ':>12}")
-    print('─' * 45)
-    for name, graph, k, chi in BENCHMARK_CASES:
-        n = len(list(graph.get_vertices()))
-        chi_str = str(chi) if chi is not None else '?'
-        print(f"{name:<25} {n:>5} {chi_str:>12}")
