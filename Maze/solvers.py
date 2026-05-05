@@ -1,5 +1,5 @@
-from models import Maze, Point
-from generator import MazeGenerator
+from Maze.models import Maze, Point
+from Maze.generator import MazeGenerator
 
 
 
@@ -34,7 +34,6 @@ class MazeSolver:
         return False
 
     def solve_generator(self):
-        """Точка входу для анімації, повертає генератор."""
         self.path = []
         self.visited = set()
         yield from self._backtrack_generator(self.maze.start_point)
@@ -59,35 +58,30 @@ class MazeSolver:
         yield {"current": current_point, "visited": set(self.visited), "path": list(self.path)}
         return False
 
-class OptimizedMazeSolver(MazeSolver):
-    def _apply_dead_end_filling(self):
-        while True:
-            changed = False
 
-            for i in range(1, self.maze.height-1):
-                for k in range(1, self.maze.width-1):
-                    point = Point(i, k)
-                    if point in (self.maze.start_point, self.maze.end_point):
-                        continue
-                    if not self.maze.is_wall(point):
-                        passable = self.maze.get_passable_neighbours(point)
-                        if len(passable) == 1:
-                            self.maze.set_wall(point)
-                            changed = True
-            if not changed:
-                break
-
-    def solve(self):
-        self._apply_dead_end_filling()
-        return super().solve()
 
 
 
 class SmartMazeSolver(MazeSolver):
     def _get_ordered_neighbours(self, point: Point) -> list[Point]:
-        passable = self.maze.get_passable_neighbours(point)
-        end = self.maze.end_point
-        return sorted(passable, key=lambda p: (abs(p.x - end.x) + abs(p.y - end.y)))
+        x, y = point.x, point.y
+        ex, ey = self.maze.end_point.x, self.maze.end_point.y
+        grid = self.maze.grid
+
+        dx_pref = 1 if ex > x else -1
+        dy_pref = 1 if ey > y else -1
+
+        if abs(ex - x) > abs(ey - y):
+            directions = [(dx_pref, 0), (0, dy_pref), (0, -dy_pref), (-dx_pref, 0)]
+        else:
+            directions = [(0, dy_pref), (dx_pref, 0), (-dx_pref, 0), (0, -dy_pref)]
+
+        passable = []
+        for dx, dy in directions:
+            if grid[x + dx][y + dy] == 0:
+                passable.append(Point(x + dx, y + dy))
+
+        return passable
 
 
     def _backtrack(self, current_point: Point) -> bool:
