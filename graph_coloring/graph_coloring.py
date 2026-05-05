@@ -30,8 +30,7 @@ def main(n:int, p:int|float, k:int, graph:Graph|list[list[int]]=None):
         graph = generate_graph(n, p)
 
     else:
-        if isinstance(graph, list):
-            graph = convert(graph)
+        graph = convert(graph)
 
     return graph, color_graph(k, graph)
 
@@ -55,7 +54,7 @@ def _is_valid(vertex:Vertex, color:int, colors: dict[int | str, int]) -> bool:
 
     return True
 
-def color_graph(k:int, graph:Graph):
+def color_graph(k:int, graph:Graph) -> dict[int | str, int] | None:
     """
     Attempts to color the graph using at most k colors via backtracking.
 
@@ -73,7 +72,7 @@ def color_graph(k:int, graph:Graph):
     colors = {}
     vertices = list(graph.get_vertices())
 
-    def solve(index):
+    def solve(index:int):
         if index == len(vertices):
             return True
 
@@ -94,57 +93,3 @@ def color_graph(k:int, graph:Graph):
         return colors
 
     return None
-
-def color_graph_visual(k:int, graph:Graph):
-    """
-    Generator that yields the current coloring state at each step.
-    """
-    colors = {}
-    vertices = list(graph.get_vertices())
-
-    def solve(index):
-        if index == len(vertices):
-            return True
-
-        vertex_key = vertices[index]
-        vertex = graph.get_vertex(vertex_key)
-        for color in range(k):
-            if _is_valid(vertex, color, colors):
-                colors[vertex_key] = color
-                yield dict(colors)
-                
-                if (yield from solve(index + 1)):
-                    return True
-
-                del colors[vertex_key]
-                yield dict(colors)
-
-        return False
-
-    yield from solve(0)
-
-if __name__ == '__main__':
-    print('Choose parameters for graph generation and coloring:')
-    v_num = int(input('Number of vertices: '))
-    chance = float(input('Chance of edge generation: '))
-    c_num = int(input('Number of colors: '))
-
-    g, colored_graph = main(v_num, chance, c_num)
-    print(g)
-    print(colored_graph)
-
-    adjacency_matrix = [[0,1,0,1,1,0,0,1,0,0],
-                        [1,0,1,0,1,1,0,0,0,0],
-                        [0,1,0,0,1,1,0,1,0,0],
-                        [1,0,0,0,0,0,1,0,0,0],
-                        [1,1,1,0,0,0,1,1,1,0],
-                        [0,1,1,0,0,0,0,0,1,1],
-                        [0,1,0,0,1,0,0,0,0,0],
-                        [1,0,1,0,1,0,0,0,1,0],
-                        [0,0,0,0,1,1,0,1,0,1],
-                        [0,0,0,0,0,1,0,0,1,0]
-    ]
-
-    g, colored_graph = main(0,0, 10, adjacency_matrix)
-    print(g)
-    print(colored_graph)
