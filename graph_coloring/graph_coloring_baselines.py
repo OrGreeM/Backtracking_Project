@@ -13,9 +13,9 @@ Includes:
 """
 
 from collections import deque
-from generate_graph import generate_graph
-from graph import Graph
-from graph_converter import convert
+from graph_coloring.generate_graph import generate_graph
+from graph_coloring.graph import Graph
+from graph_coloring.graph_converter import convert
 
 
 def main(n:int, p:int|float, k:int, graph:Graph|list[list[int]]=None):
