@@ -1,30 +1,45 @@
-import streamlit as st
-import time
-import pandas as pd
+import asyncio
 import copy
-from sudoku.sudoku import generate_puzzle as sudoku_generate, board_copy as sudoku_board_copy
-from sudoku.sudoku import PureBacktracking as SudokuDFS, BacktrackingMRV as SudokuMRV, BacktrackingMRVFC as SudokuFC, GreedySolver as SudokuGreedy
+import time
+
+import pandas as pd
+import streamlit as st
+
 from Maze.generator import MazeGenerator
 from Maze.solvers import MazeSolver, SmartMazeSolver
 from graph_coloring.generate_graph import generate_graph
-from graph_coloring.graph_coloring import main as solve_graph
+from graph_coloring.graph_coloring import color_graph as bt_color_graph
+from graph_coloring.graph_coloring_baselines import dfs_color, greedy_color
+from graph_coloring.graph_coloring_optimized import color_graph as mrv_fc_color_graph
+from sudoku.sudoku import BacktrackingMRV as SudokuMRV
+from sudoku.sudoku import BacktrackingMRVFC as SudokuFC
+from sudoku.sudoku import GreedySolver as SudokuGreedy
+from sudoku.sudoku import PureBacktracking as SudokuDFS
+from sudoku.sudoku import board_copy as sudoku_board_copy
+from sudoku.sudoku import generate_puzzle as sudoku_generate
+
 
 async def app():
     st.title("Algorithm Benchmarks")
-    st.markdown("Run automated benchmarks across multiple instances to compare algorithm performance.")
-    
-    domain = st.selectbox("Select Domain to Benchmark", ["Sudoku", "Maze Solver", "Graph Coloring", "Crossword Puzzle"])
-    
+    st.markdown(
+        "Run automated benchmarks across multiple instances to compare algorithm performance."
+    )
+
+    domain = st.selectbox(
+        "Select Domain to Benchmark",
+        ["Sudoku", "Maze Solver", "Graph Coloring", "Crossword Puzzle"],
+    )
+
     if domain == "Crossword Puzzle":
-        st.info("🚧 Coming Soon: The Crossword algorithm is not yet implemented in the core logic.")
+        st.info("Coming Soon: The Crossword algorithm is not yet implemented.")
         return
-        
+
     col1, col2 = st.columns([1, 2])
-    
+
     with col1:
         st.subheader("Configuration")
         num_executions = st.number_input("Executions per Algorithm", 1, 500, 10)
-        
+
         if domain == "Sudoku":
             difficulty = st.selectbox("Sudoku Difficulty", ["easy", "medium", "hard", "expert"])
         elif domain == "Maze Solver":
@@ -33,25 +48,25 @@ async def app():
         elif domain == "Graph Coloring":
             v_num = st.slider("Number of Vertices", 5, 30, 10)
             chance = st.slider("Edge Chance", 0.1, 1.0, 0.3)
-            c_num = st.slider("Colors", 2, 10, 4)
-            
+            c_num = st.slider("Colors (k)", 2, 10, 4)
+
         if st.button("Run Benchmarks", type="primary"):
             st.session_state.running_bench = True
-            
+
     with col2:
         if st.session_state.get("running_bench", False):
             st.session_state.running_bench = False
             progress_bar = st.progress(0)
             status = st.empty()
-            
+
             results = []
-            
+
             if domain == "Sudoku":
                 algorithms = {
                     "Pure DFS": SudokuDFS,
                     "MRV": SudokuMRV,
                     "MRV + FC": SudokuFC,
-                    "Greedy": SudokuGreedy
+                    "Greedy": SudokuGreedy,
                 }
                 for i in range(int(num_executions)):
                     puzzle, _ = sudoku_generate(difficulty)
@@ -67,18 +82,16 @@ async def app():
                             "Time (ms)": elapsed,
                             "Steps": alg.steps,
                             "Backtracks": alg.backtracks,
-                            "Solved": solved
+                            "Solved": solved,
                         })
-                    progress = (i + 1) / int(num_executions)
-                    progress_bar.progress(progress)
+                    progress_bar.progress((i + 1) / int(num_executions))
                     status.text(f"Running iteration {i+1}/{int(num_executions)}...")
-                    import asyncio
                     await asyncio.sleep(0.01)
-                    
+
             elif domain == "Maze Solver":
                 algorithms = {
                     "DFS (Basic)": MazeSolver,
-                    "Smart (Heuristic)": SmartMazeSolver
+                    "Smart (Heuristic)": SmartMazeSolver,
                 }
                 for i in range(int(num_executions)):
                     generator = MazeGenerator(m_height, m_width)
@@ -94,55 +107,73 @@ async def app():
                             "Iteration": i,
                             "Time (ms)": elapsed,
                             "Explored Cells": len(alg.visited),
-                            "Path Length": len(path) if path else 0
+                            "Path Length": len(path) if path else 0,
                         })
-                    progress = (i + 1) / int(num_executions)
-                    progress_bar.progress(progress)
+                    progress_bar.progress((i + 1) / int(num_executions))
                     status.text(f"Running iteration {i+1}/{int(num_executions)}...")
-                    import asyncio
                     await asyncio.sleep(0.01)
 
             elif domain == "Graph Coloring":
+                graph_algorithms = {
+                    "Simple BT": lambda k, g: bt_color_graph(k, g),
+                    "MRV + FC": lambda k, g: mrv_fc_color_graph(k, g),
+                    "Greedy": lambda k, g: greedy_color(k, g),
+                    "DFS": lambda k, g: dfs_color(k, g),
+                }
                 for i in range(int(num_executions)):
                     base_graph = generate_graph(v_num, chance)
-                    
-                    t0 = time.perf_counter()
-                    _, colored = solve_graph(0, 0, c_num, graph=copy.deepcopy(base_graph))
-                    elapsed = (time.perf_counter() - t0) * 1000
-                    
-                    results.append({
-                        "Algorithm": "Backtracking",
-                        "Iteration": i,
-                        "Time (ms)": elapsed,
-                        "Solved": bool(colored)
-                    })
-                    
-                    progress = (i + 1) / int(num_executions)
-                    progress_bar.progress(progress)
+                    for name, solve_fn in graph_algorithms.items():
+                        t0 = time.perf_counter()
+                        coloring = solve_fn(c_num, base_graph)
+                        elapsed = (time.perf_counter() - t0) * 1000
+                        colors_used = len(set(coloring.values())) if coloring else 0
+                        results.append({
+                            "Algorithm": name,
+                            "Iteration": i,
+                            "Time (ms)": elapsed,
+                            "Colors Used": colors_used,
+                            "Solved": bool(coloring),
+                        })
+                    progress_bar.progress((i + 1) / int(num_executions))
                     status.text(f"Running iteration {i+1}/{int(num_executions)}...")
-                    import asyncio
                     await asyncio.sleep(0.01)
-                    
+
             status.success("Benchmarking complete!")
             df = pd.DataFrame(results)
-            
+
             st.subheader("Average Performance")
             if domain == "Sudoku":
-                avg_df = df.groupby("Algorithm")[["Time (ms)", "Steps", "Backtracks"]].mean().reset_index()
+                avg_df = (
+                    df.groupby("Algorithm")[["Time (ms)", "Steps", "Backtracks"]]
+                    .mean()
+                    .reset_index()
+                )
                 st.dataframe(avg_df)
                 st.subheader("Steps Comparison")
                 st.bar_chart(avg_df.set_index("Algorithm")["Steps"])
                 st.subheader("Execution Time (ms) Comparison")
                 st.bar_chart(avg_df.set_index("Algorithm")["Time (ms)"])
+
             elif domain == "Maze Solver":
-                avg_df = df.groupby("Algorithm")[["Time (ms)", "Explored Cells", "Path Length"]].mean().reset_index()
+                avg_df = (
+                    df.groupby("Algorithm")[["Time (ms)", "Explored Cells", "Path Length"]]
+                    .mean()
+                    .reset_index()
+                )
                 st.dataframe(avg_df)
                 st.subheader("Explored Cells Comparison")
                 st.bar_chart(avg_df.set_index("Algorithm")["Explored Cells"])
                 st.subheader("Execution Time (ms) Comparison")
                 st.bar_chart(avg_df.set_index("Algorithm")["Time (ms)"])
+
             elif domain == "Graph Coloring":
-                avg_df = df.groupby("Algorithm")[["Time (ms)", "Solved"]].mean().reset_index()
+                avg_df = (
+                    df.groupby("Algorithm")[["Time (ms)", "Colors Used", "Solved"]]
+                    .mean()
+                    .reset_index()
+                )
                 st.dataframe(avg_df)
-                st.subheader("Execution Time (ms)")
+                st.subheader("Time (ms) Comparison")
                 st.bar_chart(avg_df.set_index("Algorithm")["Time (ms)"])
+                st.subheader("Colors Used Comparison")
+                st.bar_chart(avg_df.set_index("Algorithm")["Colors Used"])

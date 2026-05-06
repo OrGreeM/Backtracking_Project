@@ -12,8 +12,8 @@ Each entry is a tuple (name, graph, k, expected_chromatic).
 `expected_chromatic` is None when the chromatic number is unknown.
 """
 
-from generate_graph import generate_graph
-from graph import Graph
+from graph_coloring.generate_graph import generate_graph
+from graph_coloring.graph import Graph
 
 
 def build_complete(n:int) -> Graph:

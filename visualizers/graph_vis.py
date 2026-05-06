@@ -1,9 +1,15 @@
-import streamlit as st
-import time
-import networkx as nx
+import asyncio
+
 import matplotlib.pyplot as plt
+import networkx as nx
+import streamlit as st
+
 from graph_coloring.generate_graph import generate_graph
-from graph_coloring.graph_coloring import color_graph_visual
+from graph_coloring.graph_coloring import color_graph as bt_color_graph
+from graph_coloring.graph_coloring_baselines import dfs_color, greedy_color
+from graph_coloring.graph_coloring_optimized import color_graph as mrv_fc_color_graph
+from graph_coloring.visualize import COLOR_PALETTE, UNCOLORED, simple_bt_steps, to_networkx
+
 
 async def app():
     st.title("Graph Coloring Visualizer")
@@ -11,92 +17,135 @@ async def app():
     col1, col2 = st.columns([1, 2])
 
     with col1:
+        algorithm = st.selectbox(
+            "Algorithm",
+            ["Simple Backtracking", "MRV + FC", "Greedy (Welsh-Powell)", "DFS"],
+        )
         v_num = st.slider("Number of Vertices", 5, 30, 10)
         chance = st.slider("Chance of edge generation", 0.1, 1.0, 0.3)
         c_num = st.slider("Number of colors", 2, 10, 4)
-        speed = st.slider("Animation Speed (ms)", 1, 500, 100)
+
+        speed = 100
+        if algorithm == "Simple Backtracking":
+            speed = st.slider("Animation Speed (ms)", 1, 500, 100)
+            st.caption("Step-by-step animation plays on Solve.")
 
         if st.button("Generate New Graph"):
             st.session_state.graph_obj = generate_graph(v_num, chance)
-            # Store stable layout
-            G = nx.Graph()
-            for vk in st.session_state.graph_obj.get_vertices():
-                G.add_node(vk)
-            for vk in st.session_state.graph_obj.get_vertices():
-                v = st.session_state.graph_obj.get_vertex(vk)
-                for neighbor in v.get_neighbors():
-                    G.add_edge(vk, neighbor)
-            st.session_state.graph_pos = nx.spring_layout(G, seed=42)
+            nx_g = to_networkx(st.session_state.graph_obj)
+            st.session_state.graph_pos = nx.spring_layout(nx_g, seed=42)
             st.session_state.running_graph = False
+            st.session_state.last_coloring = None
 
-        if st.button("Solve Graph", type="primary"):
+        btn_label = (
+            "Solve (Step-by-step)"
+            if algorithm == "Simple Backtracking"
+            else "Solve"
+        )
+        if st.button(btn_label, type="primary"):
             st.session_state.running_graph = True
+            st.session_state.graph_algorithm = algorithm
+            st.session_state.graph_c_num = c_num
+            st.session_state.graph_speed = speed
 
     with col2:
         if "graph_obj" not in st.session_state:
-            st.session_state.graph_obj = generate_graph(10, 0.3)
-            G = nx.Graph()
-            for vk in st.session_state.graph_obj.get_vertices():
-                G.add_node(vk)
-            for vk in st.session_state.graph_obj.get_vertices():
-                v = st.session_state.graph_obj.get_vertex(vk)
-                for n in v.get_neighbors():
-                    G.add_edge(vk, n)
-            st.session_state.graph_pos = nx.spring_layout(G, seed=42)
+            st.session_state.graph_obj = generate_graph(v_num, chance)
+            nx_g = to_networkx(st.session_state.graph_obj)
+            st.session_state.graph_pos = nx.spring_layout(nx_g, seed=42)
+            st.session_state.last_coloring = None
 
-        plot_container = st.empty()
-        info_container = st.empty()
+        plot_placeholder = st.empty()
+        info_placeholder = st.empty()
 
-        def render_graph(graph_obj, pos, colors_dict=None):
+        def render_graph(graph_obj, pos, colors_dict=None, current_vertex=None):
             colors_dict = colors_dict or {}
-            G = nx.Graph()
+            nx_g = to_networkx(graph_obj)
 
-            for vertex_key in graph_obj.get_vertices():
-                G.add_node(vertex_key)
-
-            for vertex_key in graph_obj.get_vertices():
-                v = graph_obj.get_vertex(vertex_key)
-                for neighbor in v.get_neighbors():
-                    G.add_edge(vertex_key, neighbor)
-
-            color_map = []
-            palette = ['#e6194B', '#3cb44b', '#ffe119', '#4363d8', '#f58231', '#911eb4', '#42d4f4', '#f032e6', '#bfef45', '#fabed4']
-
-            for node in G.nodes():
-                if node in colors_dict:
-                    color_idx = colors_dict[node] % len(palette)
-                    color_map.append(palette[color_idx])
+            node_colors, edge_colors, edge_widths = [], [], []
+            for node in nx_g.nodes():
+                c = colors_dict.get(node)
+                node_colors.append(
+                    COLOR_PALETTE[c % len(COLOR_PALETTE)] if c is not None else UNCOLORED
+                )
+                if node == current_vertex:
+                    edge_colors.append("#ffffff")
+                    edge_widths.append(3.5)
                 else:
-                    color_map.append('#cccccc')
+                    edge_colors.append("#555555")
+                    edge_widths.append(1.0)
 
             fig, ax = plt.subplots(figsize=(6, 5))
-            fig.patch.set_facecolor('#0e1117')
-            ax.set_facecolor('#0e1117')
-            nx.draw(G, pos, ax=ax, node_color=color_map, with_labels=True, node_size=600, font_color='white', font_weight='bold', edge_color='#666')
+            fig.patch.set_facecolor("#0e1117")
+            ax.set_facecolor("#0e1117")
+            ax.set_axis_off()
 
-            plot_container.pyplot(fig)
+            nx.draw_networkx_edges(nx_g, pos, ax=ax, edge_color="#666666", width=1.5)
+            nx.draw_networkx_nodes(
+                nx_g, pos, ax=ax,
+                node_color=node_colors, node_size=700,
+                edgecolors=edge_colors, linewidths=edge_widths,
+            )
+            nx.draw_networkx_labels(
+                nx_g, pos, ax=ax,
+                font_size=10, font_color="white", font_weight="bold",
+            )
+
+            plot_placeholder.pyplot(fig)
             plt.close(fig)
 
         if st.session_state.get("running_graph", False):
             st.session_state.running_graph = False
+            alg = st.session_state.get("graph_algorithm", "Simple Backtracking")
+            k = st.session_state.get("graph_c_num", c_num)
+            spd = st.session_state.get("graph_speed", 100)
+            graph_obj = st.session_state.graph_obj
+            pos = st.session_state.graph_pos
+            n_vertices = len(list(graph_obj.get_vertices()))
 
-            gen = color_graph_visual(c_num, st.session_state.graph_obj)
+            if alg == "Simple Backtracking":
+                gen = simple_bt_steps(k, graph_obj)
+                steps = 0
+                final_colors = {}
+                for current_key, colors_state in gen:
+                    steps += 1
+                    final_colors = colors_state
+                    render_graph(graph_obj, pos, colors_state, current_key)
+                    info_placeholder.info(f"Steps: {steps}")
+                    await asyncio.sleep(spd / 1000.0)
 
-            steps = 0
-            final_state = {}
-            for colors_state in gen:
-                steps += 1
-                final_state = colors_state
-                if steps % 1 == 0:
-                    render_graph(st.session_state.graph_obj, st.session_state.graph_pos, colors_state)
-                    info_container.info(f"Steps: {steps}")
-                    import asyncio
-                    await asyncio.sleep(speed / 1000.0)
+                solved = len(final_colors) == n_vertices
+                st.session_state.last_coloring = final_colors if solved else {}
+                render_graph(graph_obj, pos, st.session_state.last_coloring)
+                if solved:
+                    used = len(set(final_colors.values()))
+                    info_placeholder.success(
+                        f"Colored in {steps} steps using {used} color(s)!"
+                    )
+                else:
+                    info_placeholder.error(f"Cannot color this graph with {k} colors.")
 
-            render_graph(st.session_state.graph_obj, st.session_state.graph_pos, final_state)
-            if len(final_state) == len(list(st.session_state.graph_obj.get_vertices())):
-                info_container.success(f"Graph colored successfully in {steps} steps using {c_num} colors max!")
             else:
-                info_container.error(f"Failed to color graph with {c_num} colors.")
+                if alg == "MRV + FC":
+                    result = mrv_fc_color_graph(k, graph_obj)
+                elif alg == "Greedy (Welsh-Powell)":
+                    result = greedy_color(k, graph_obj)
+                else:
+                    result = dfs_color(k, graph_obj)
+
+                st.session_state.last_coloring = result or {}
+                render_graph(graph_obj, pos, st.session_state.last_coloring)
+                if result:
+                    used = len(set(result.values()))
+                    info_placeholder.success(
+                        f"Colored successfully using {used} color(s)!"
+                    )
+                else:
+                    info_placeholder.error(f"Cannot color this graph with {k} colors.")
+
         else:
-            render_graph(st.session_state.graph_obj, st.session_state.graph_pos)
+            render_graph(
+                st.session_state.graph_obj,
+                st.session_state.graph_pos,
+                st.session_state.get("last_coloring"),
+            )
