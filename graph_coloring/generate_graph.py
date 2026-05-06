@@ -2,10 +2,13 @@
 Module created for graph generation.
 """
 import random
-from graph import Graph
+from graph_coloring.graph import Graph
 
 
-def generate_graph(number_of_vertices:int, chance_of_edge_generation:float | int) -> Graph:
+def generate_graph(number_of_vertices:int,
+                   chance_of_edge_generation:float | int,
+                   seed:int|None=None) -> Graph:
+
     """
     Generates a random undirected graph.
 
@@ -21,6 +24,7 @@ def generate_graph(number_of_vertices:int, chance_of_edge_generation:float | int
     Returns:
         Graph: A randomly generated graph with edges.
     """
+    rng = random.Random(seed)
     graph = Graph()
 
     for k in range(number_of_vertices):
@@ -28,11 +32,7 @@ def generate_graph(number_of_vertices:int, chance_of_edge_generation:float | int
 
     for i in range(number_of_vertices):
         for j in range(i + 1, number_of_vertices):
-            if random.random() < chance_of_edge_generation:
+            if rng.random() < chance_of_edge_generation:
                 graph.add_edge(i, j)
 
     return graph
-
-if __name__ == '__main__':
-    g = generate_graph(7, 0.4)
-    print(g)

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Backtracking Visualizer</title>
+    <!-- Stlite CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.63.1/build/stlite.css" />
+</head>
+<body>
+    <div id="root"></div>
+    <!-- Stlite JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.63.1/build/stlite.js"></script>
+    <script>
+        stlite.mount(
+            {
+                requirements: ["matplotlib", "networkx", "pandas", "numpy"],
+                entrypoint: "app.py",
+                files: {
+                    "app.py": { url: "app.py?v=3" },
+                    "visualizers/__init__.py": { url: "visualizers/__init__.py?v=3" },
+                    "visualizers/sudoku_vis.py": { url: "visualizers/sudoku_vis.py?v=3" },
+                    "visualizers/maze_vis.py": { url: "visualizers/maze_vis.py?v=3" },
+                    "visualizers/graph_vis.py": { url: "visualizers/graph_vis.py?v=3" },
+                    "visualizers/benchmark_vis.py": { url: "visualizers/benchmark_vis.py?v=3" },
+
+                    // Core files
+                    "sudoku/__init__.py": { url: "sudoku/__init__.py?v=3" },
+                    "sudoku/sudoku.py": { url: "sudoku/sudoku.py?v=3" },
+
+                    "Maze/__init__.py": { url: "Maze/__init__.py?v=3" },
+                    "Maze/models.py": { url: "Maze/models.py?v=3" },
+                    "Maze/solvers.py": { url: "Maze/solvers.py?v=3" },
+                    "Maze/generator.py": { url: "Maze/generator.py?v=3" },
+
+                    "graph_coloring/__init__.py": { url: "graph_coloring/__init__.py?v=3" },
+                    "graph_coloring/graph.py": { url: "graph_coloring/graph.py?v=3" },
+                    "graph_coloring/graph_coloring.py": { url: "graph_coloring/graph_coloring.py?v=3" },
+                    "graph_coloring/graph_coloring_optimized.py": { url: "graph_coloring/graph_coloring_optimized.py?v=3" },
+                    "graph_coloring/graph_coloring_baselines.py": { url: "graph_coloring/graph_coloring_baselines.py?v=3" },
+                    "graph_coloring/generate_graph.py": { url: "graph_coloring/generate_graph.py?v=3" },
+                    "graph_coloring/graph_converter.py": { url: "graph_coloring/graph_converter.py?v=3" },
+                    "graph_coloring/visualize.py": { url: "graph_coloring/visualize.py?v=3" },
+                    "graph_coloring/benchmark_suite.py": { url: "graph_coloring/benchmark_suite.py?v=3" }
+                }
+            },
+            document.getElementById("root")
+        );
+    </script>
+</body>
+</html>
