@@ -4,16 +4,22 @@ N-Queens: порівняння 4 алгоритмів
 2. Forward Checking (FC)
 3. MRV (Minimum Remaining Values)
 4. MRV + FC (Constraint Propagation)
-
-Запуск: python n_compare.py [N]   (N за замовч. = 6)
 """
 import sys, time
+import argparse
 sys.setrecursionlimit(100_000)
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.widgets import Button, Slider
 
-N = int(sys.argv[1]) if len(sys.argv) > 1 else 6
+parser = argparse.ArgumentParser(description="N-Queens Backtracking Comparison")
+parser.add_argument("-n", "--size", type=int, default=6, help="Розмір дошки N x N")
+parser.add_argument("--no-vis", action="store_true", help="Не показувати візуалізацію")
+parser.add_argument("--algs", nargs="+", choices=["basic", "fc", "mrv", "mrv_fc"],
+                    default=["basic", "fc", "mrv", "mrv_fc"], help="Алгоритми для запуску")
+args = parser.parse_args()
+
+N = args.size
 
 BG        = '#0d1117'
 SQ_LIGHT  = '#f0d9b5'
@@ -183,7 +189,13 @@ if N > 9:
     print(f"Увага: N={N} може бути повільним для базового алгоритму та MRV")
 
 print(f"N={N}: обчислення...")
-solvers  = [solve_basic, solve_fc, solve_mrv, solve_mrv_fc]
+
+algo_mapping = {'basic': solve_basic, 'fc': solve_fc, 'mrv': solve_mrv, 'mrv_fc': solve_mrv_fc}
+idx_mapping = {'basic': 0, 'fc': 1, 'mrv': 2, 'mrv_fc': 3}
+solvers = [algo_mapping[k] for k in args.algs]
+active_clr = [ALGO_CLR[idx_mapping[k]] for k in args.algs]
+active_short = [ALGO_SHORT[idx_mapping[k]] for k in args.algs]
+
 all_steps, all_stats = [], []
 for fn in solvers:
     st, ss = fn(N)
@@ -192,6 +204,9 @@ for fn in solvers:
     tag = fn.__name__[6:]
     print(f"  {tag:10s}  кроків={len(st):6d}  вузлів={ss['nodes']:6d}  "
           f"відкатів={ss['backs']:6d}  рішень={ss['solutions']}  {ss['ms']:.2f}мс")
+
+if args.no_vis:
+    sys.exit(0)
 
 max_frames = max(len(s) for s in all_steps)
 
@@ -204,13 +219,13 @@ metrics = [
     ('backs', 'Кількість відкатів'),
     ('ms',    'Час виконання (мс)'),
 ]
-short_names = ['Базовий', 'FC', 'MRV', 'MRV+FC']
+short_names = active_short
 
 for ax, (key, title) in zip(axs, metrics):
     ax.set_facecolor('#161b22')
     vals = [ss[key] for ss in all_stats]
-    bars = ax.bar(range(4), vals, color=ALGO_CLR, edgecolor='none', width=0.55, zorder=3)
-    ax.set_xticks(range(4))
+    bars = ax.bar(range(len(solvers)), vals, color=active_clr, edgecolor='none', width=0.55, zorder=3)
+    ax.set_xticks(range(len(solvers)))
     ax.set_xticklabels(short_names, color='white', fontsize=10)
     ax.set_title(title, color='white', fontsize=12, fontweight='bold', pad=8)
     ax.tick_params(axis='y', colors='white')
@@ -231,10 +246,11 @@ fig_cmp.tight_layout(rect=[0, 0, 1, 0.94])
 
 fig_anim = plt.figure(figsize=(22, 7), facecolor=BG)
 
+n_plots_anim = len(solvers)
 gs = fig_anim.add_gridspec(
-    1, 4, left=0.01, right=0.99, bottom=0.13, top=0.90, wspace=0.05
+    1, n_plots_anim, left=0.01, right=0.99, bottom=0.13, top=0.90, wspace=0.05
 )
-anim_axes = [fig_anim.add_subplot(gs[0, i]) for i in range(4)]
+anim_axes = [fig_anim.add_subplot(gs[0, i]) for i in range(n_plots_anim)]
 for ax in anim_axes:
     ax.set_facecolor(BG)
     ax.axis('off')
@@ -280,7 +296,7 @@ running = [True]
 
 
 def render(f):
-    for steps, ax, color, short in zip(all_steps, anim_axes, ALGO_CLR, ALGO_SHORT):
+    for steps, ax, color, short in zip(all_steps, anim_axes, active_clr, active_short):
         fi     = min(f, len(steps) - 1)
         ev, bd = steps[fi]
         is_sol = (ev == 'sol')

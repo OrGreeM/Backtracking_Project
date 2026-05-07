@@ -1,9 +1,16 @@
-import sys, time, copy
+import sys, time, copy, argparse
 sys.setrecursionlimit(100000)
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.widgets import Button, Slider
-GRID_TEMPLATE = ['....', '.##.', '.##.', '....']
+
+parser = argparse.ArgumentParser(description="Crossword CSP Solver")
+parser.add_argument("--no-vis", action="store_true", help="Не показувати візуалізацію")
+parser.add_argument("--algs", nargs="+", choices=["basic", "fc", "mrv", "mrv_fc"],
+                    default=["basic", "fc", "mrv", "mrv_fc"], help="Алгоритми для запуску")
+args = parser.parse_args()
+
+GRID_TEMPLATE = ['....', '.##.', '.##.', '.##.', '....']
 WORDS_DB = ['AURA', 'AXIS', 'BABY', 'BACK', 'BARD', 'BARE', 'BARK', 'BASE', 'BASS', 'BEAR', 'BEEF', 'BIRD', 'BLUE', 'BOAT', 'BOMB', 'BONE', 'BOOK', 'BOSS', 'BOWL', 'BULK', 'BULL', 'BUSH', 'CAKE', 'CALF', 'CAMP', 'CARD', 'CARE', 'CASH', 'CAST', 'CAVE', 'CELL', 'CHAT', 'CHEF', 'CITY', 'CLUB', 'COAL', 'COAT', 'CODE', 'COIN', 'COOK', 'COOL', 'COPE', 'COPY', 'CORE', 'CORN', 'COST', 'CRAB', 'CROP', 'CROW', 'DARK', 'DART', 'DASH', 'DATA', 'DATE', 'DAWN', 'DEAD', 'DEAL', 'DEAN', 'DEAR', 'DECK', 'DEEP', 'DEER', 'DESK', 'DIAL', 'DIET', 'DIRT', 'DISH', 'DISK', 'DIVE', 'DOCK', 'DOOR', 'DOSE', 'DOWN', 'DRAW', 'DROP', 'DUAL', 'DUST', 'DUTY', 'EACH', 'EARN', 'EASY', 'EDGE', 'EPIC', 'EVEN', 'EVER', 'EVIL', 'EXIT', 'FACE', 'FACT', 'FADE', 'FAIL', 'FAIR', 'FALL', 'FARM', 'FAST', 'FEAR', 'FEED', 'FEEL', 'FILE', 'FILL', 'FILM', 'FIND', 'FINE', 'FIRE', 'FIRM', 'FISH', 'FIVE', 'FLAG', 'FLAT', 'FLOW', 'FOLD', 'FOOD', 'FOOT', 'FORD', 'FORM', 'FUND', 'GAME', 'GANG', 'GATE', 'GEAR', 'GIFT', 'GIRL', 'GLAD', 'GOAL', 'GOES', 'GOLD', 'GOLF', 'GOOD', 'GRAY', 'GREY', 'GRIP', 'GROW', 'GULF', 'HAIR', 'HALF', 'HALL', 'HAND', 'HANG', 'HARD', 'HARM', 'HATE', 'HEAD', 'HEAL', 'HEAR', 'HEAT', 'HELP', 'HERO', 'HIDE', 'HIGH', 'HILL', 'HIRE', 'HOLD', 'HOPE', 'HOST', 'HOUR', 'HUGE', 'HUNT', 'HURT', 'IDEA', 'IRON', 'ITEM', 'JACK', 'JOIN', 'JOKE', 'JUMP', 'JURY', 'JUST', 'KEEP', 'KICK', 'KILL', 'KIND', 'KING', 'KISS', 'KNEE', 'LACK', 'LAKE', 'LAND', 'LAST', 'LATE', 'LEAD', 'LEAF', 'LEAN', 'LEFT', 'LESS', 'LIFE', 'LIFT', 'LINE', 'LINK', 'LION', 'LIST', 'LIVE', 'LOAD', 'LOAN', 'LOCK', 'LOGO', 'LONG', 'LOOK', 'LOSS', 'LOST', 'LOVE', 'LUCK', 'MAKE', 'MALE', 'MALL', 'MARK', 'MASS', 'MATH', 'MEAL', 'MEAT', 'MEET', 'MENU', 'MILD', 'MILE', 'MILK', 'MIND', 'MINE', 'MODE', 'MOON', 'MORE', 'MOST', 'MOVE', 'MUCH', 'MUST', 'NAME', 'NAVY', 'NEAR', 'NECK', 'NEED', 'NEWS', 'NICE', 'NINE', 'NONE', 'NOSE', 'NOTE', 'ONLY', 'OPEN', 'ORAL', 'OVEN', 'OVER', 'PACE', 'PAGE', 'PAIN', 'PAIR', 'PALM', 'PARK', 'PART', 'PASS', 'PAST', 'PATH', 'PEAK', 'PEER', 'PICK', 'PILL', 'PINE', 'PIPE', 'PLAN', 'PLAY', 'PLOT', 'PLUG', 'PLUS', 'POEL', 'POEM', 'POET', 'POLE', 'POOL', 'POOR', 'PORT', 'POST', 'PULL', 'PURE', 'PUSH', 'RACE', 'RAIN', 'RARE', 'RATE', 'READ', 'REAL', 'REAR', 'RELY', 'RENT', 'REST', 'RICE', 'RICH', 'RIDE', 'RING', 'RISE', 'RISK', 'ROAD', 'ROCK', 'ROLE', 'ROLL', 'ROOF', 'ROOM', 'ROOT', 'ROPE', 'ROSE', 'RULE', 'RUSH', 'SAFE', 'SAID', 'SAKE', 'SALE', 'SALT', 'SAME', 'SAND', 'SAVE', 'SEAT', 'SEED', 'SEEK', 'SEEM', 'SELL', 'SEND', 'SHIP', 'SHOE', 'SHOP', 'SHOT', 'SHOW', 'SHUT', 'SICK', 'SIDE', 'SIGN', 'SITE', 'SIZE', 'SKIN', 'SLIP', 'SLOW', 'SNOW', 'SOFT', 'SOIL', 'SOME', 'SONG', 'SOON', 'SORT', 'SOUL', 'SOUP', 'SPOT', 'STAR', 'STAY', 'STEP', 'STOP', 'SUCH', 'SUIT', 'SURE', 'TAKE', 'TALE', 'TALK', 'TALL', 'TANK', 'TAPE', 'TASK', 'TEAM', 'TEAR', 'TELL', 'TEND', 'TENT', 'TERM', 'TEST', 'TEXT', 'THAN', 'THAT', 'THEN', 'THEY', 'THIN', 'THIS', 'THUS', 'TILL', 'TIME', 'TINY', 'TOLD', 'TOLL', 'TONE', 'TOOK', 'TOOL', 'TOUR', 'TOWN', 'TREE', 'TRIP', 'TRUE', 'TUNE', 'TURN', 'TWIN', 'TYPE', 'UNIT', 'UPON', 'USED', 'USER', 'VAST', 'VERY', 'VICE', 'VIEW', 'VOID', 'VOTE', 'WAIT', 'WAKE', 'WALK', 'WALL', 'WANT', 'WARD', 'WASH', 'WAVE', 'WAYS', 'WEAK', 'WEAR', 'WEEK', 'WELL', 'WENT', 'WERE', 'WEST', 'WHAT', 'WHEN', 'WHOM', 'WIDE', 'WIFE', 'WILD', 'WILL', 'WIND', 'WINE', 'WING', 'WIRE', 'WISE', 'WISH', 'WITH', 'WOOD', 'WORD', 'WORK', 'WRAP', 'YARD', 'YEAR', 'YOUR', 'ZERO', 'ZONE', 'COLD', 'WARM', 'CREW', 'DOOM']
 N_ROWS = len(GRID_TEMPLATE)
 N_COLS = len(GRID_TEMPLATE[0])
@@ -320,7 +327,10 @@ def solve_mrv_fc():
     s['ms'] = (time.perf_counter() - t0) * 1000
     return (steps, s)
 print('Обчислення кросворда...')
-solvers = [solve_basic, solve_fc, solve_mrv, solve_mrv_fc]
+algo_mapping = {'basic': solve_basic, 'fc': solve_fc, 'mrv': solve_mrv, 'mrv_fc': solve_mrv_fc}
+idx_mapping = {'basic': 0, 'fc': 1, 'mrv': 2, 'mrv_fc': 3}
+
+solvers = [algo_mapping[k] for k in args.algs]
 all_steps, all_stats = ([], [])
 for fn in solvers:
     st, ss = fn()
@@ -330,6 +340,10 @@ for fn in solvers:
     all_stats.append(ss)
     tag = fn.__name__[6:]
     print(f"  {tag:10s}  кроків={len(st):6d}  вузлів={ss['nodes']:6d}  відкатів={ss['backs']:6d}  рішень={ss['solutions']}  {ss['ms']:.2f}мс")
+
+if args.no_vis:
+    sys.exit(0)
+
 BG = '#0d1117'
 SQ_EMPTY = '#ffffff'
 SQ_BLOCK = '#161b22'
@@ -337,6 +351,10 @@ SQ_TEXT = '#1a1a2e'
 SOL_CLR = '#2ea043'
 ALGO_CLR = ['#e8a838', '#4a9eff', '#c678dd', '#2ea043']
 ALGO_SHORT = ['Базовий\nбектрекінг', 'Forward\nChecking', 'MRV', 'MRV + FC']
+
+active_clr = [ALGO_CLR[idx_mapping[k]] for k in args.algs]
+active_short = [ALGO_SHORT[idx_mapping[k]] for k in args.algs]
+
 max_frames = max((len(s) for s in all_steps))
 fig_cmp, axs = plt.subplots(1, 3, figsize=(14, 5), facecolor=BG)
 fig_cmp.suptitle('Порівняння алгоритмів  ·  Crossword CSP', color='white', fontsize=14, fontweight='bold')
@@ -344,9 +362,9 @@ metrics = [('nodes', 'Вузлів досліджено'), ('backs', 'Кільк
 for ax, (key, title) in zip(axs, metrics):
     ax.set_facecolor('#161b22')
     vals = [ss[key] for ss in all_stats]
-    bars = ax.bar(range(4), vals, color=ALGO_CLR, edgecolor='none', width=0.55, zorder=3)
-    ax.set_xticks(range(4))
-    ax.set_xticklabels(['Базовий', 'FC', 'MRV', 'MRV+FC'], color='white', fontsize=10)
+    bars = ax.bar(range(len(solvers)), vals, color=active_clr, edgecolor='none', width=0.55, zorder=3)
+    ax.set_xticks(range(len(solvers)))
+    ax.set_xticklabels([short.replace('\n', ' ') for short in active_short], color='white', fontsize=10)
     ax.set_title(title, color='white', fontsize=12, fontweight='bold', pad=8)
     ax.tick_params(axis='y', colors='white')
     ax.tick_params(axis='x', length=0)
@@ -359,8 +377,9 @@ for ax, (key, title) in zip(axs, metrics):
         ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + maxv * 0.015, label, ha='center', va='bottom', color='white', fontsize=9, fontweight='bold', zorder=5)
 fig_cmp.tight_layout(rect=[0, 0, 1, 0.94])
 fig_anim = plt.figure(figsize=(22, 7), facecolor=BG)
-gs = fig_anim.add_gridspec(1, 4, left=0.01, right=0.99, bottom=0.13, top=0.9, wspace=0.05)
-anim_axes = [fig_anim.add_subplot(gs[0, i]) for i in range(4)]
+n_plots_anim = len(solvers)
+gs = fig_anim.add_gridspec(1, n_plots_anim, left=0.01, right=0.99, bottom=0.13, top=0.9, wspace=0.05)
+anim_axes = [fig_anim.add_subplot(gs[0, i]) for i in range(n_plots_anim)]
 
 def draw_board(ax, board, title, color, is_sol=False, done=False):
     ax.cla()
@@ -388,7 +407,7 @@ frame = [0]
 running = [True]
 
 def render(f):
-    for steps, ax, color, short in zip(all_steps, anim_axes, ALGO_CLR, ALGO_SHORT):
+    for steps, ax, color, short in zip(all_steps, anim_axes, active_clr, active_short):
         fi = min(f, len(steps) - 1)
         ev, bd = steps[fi]
         is_sol = ev == 'sol'
