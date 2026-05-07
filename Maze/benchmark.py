@@ -2,8 +2,9 @@ import copy
 import sys
 import time
 
+
 from generator import MazeGenerator
-from solvers import MazeSolver, OptimizedMazeSolver, SmartMazeSolver
+from solvers import MazeSolver, SmartMazeSolver, BFSMazeSolver, AStarMazeSolver
 
 if __name__ == "__main__":
     h = w = 401
@@ -21,7 +22,8 @@ if __name__ == "__main__":
 
     maze_for_classic = copy.deepcopy(original_maze)
     maze_for_smart = copy.deepcopy(original_maze)
-    maze_for_optimized = copy.deepcopy(original_maze)
+    maze_for_bfs = copy.deepcopy(original_maze)
+    maze_for_astar = copy.deepcopy(original_maze)
 
 
     classic_solver = MazeSolver(maze_for_classic)
@@ -50,22 +52,39 @@ if __name__ == "__main__":
     print(f"Загальний час виконання (з обробкою): {time_sm_ms:.4f} мс")
     print(f"Довжина знайденого шляху: {len(sm_solver.path)}")
 
-    # opt_solver = OptimizedMazeSolver(maze_for_optimized)
 
-    # start_time_opt = time.perf_counter()
-    # opt_solver.solve()
-    # end_time_opt = time.perf_counter()
+    bfs_solver = BFSMazeSolver(maze_for_bfs)
 
-    # time_opt_ms = (end_time_opt - start_time_opt) * 1000
+    start_bfs = time.perf_counter()
+    bfs_solver.solve()
+    end_bfs = time.perf_counter()
 
-    # print("\n--- Запуск оптимізованого алгоритму (Dead-end filling) ---")
-    # print(f"Відвідано клітинок (під час пошуку): {len(opt_solver.visited)}")
-    # print(f"Загальний час виконання (з обробкою): {time_opt_ms:.4f} мс")
-    # print(f"Довжина знайденого шляху: {len(opt_solver.path)}")
+    time_bfs_ms = (end_bfs - start_bfs) * 1000
+    print("\n--- Запуск BFS (Пошук у ширину) ---")
+    print(f"Відвідано клітинок: {len(bfs_solver.visited)}")
+    print(f"Час виконання: {time_bfs_ms:.4f} мс")
+    print(f"Довжина знайденого шляху: {len(bfs_solver.path)}")
 
 
-    # print(maze_for_smart.__str__(sm_solver.path))
+    astar_solver = AStarMazeSolver(maze_for_astar)
 
-    # print(maze_for_optimized.__str__(opt_solver.path))
+    start_astar = time.perf_counter()
+    astar_solver.solve()
+    end_astar = time.perf_counter()
 
-    # print(maze_for_classic.__str__(classic_solver.path))
+    time_astar_ms = (end_astar - start_astar) * 1000
+    print("\n--- Запуск A* (A-Star) ---")
+    print(f"Відвідано клітинок: {len(astar_solver.visited)}")
+    print(f"Час виконання: {time_astar_ms:.4f} мс")
+    print(f"Довжина знайденого шляху: {len(astar_solver.path)}")
+
+
+    print("\n" + "="*50)
+    print("ПІДСУМКОВА ТАБЛИЦЯ")
+    print("="*50)
+    print(f"{'Алгоритм':<25} {'Час (мс)':<15} {'Відвідано':<15} {'Довжина шляху':<15}")
+    print("-"*70)
+    print(f"{'DFS (класичний)':<25} {time_classic_ms:<15.4f} {len(classic_solver.visited):<15} {len(classic_solver.path):<15}")
+    print(f"{'Smart DFS (евристика)':<25} {time_sm_ms:<15.4f} {len(sm_solver.visited):<15} {len(sm_solver.path):<15}")
+    print(f"{'BFS (пошук у ширину)':<25} {time_bfs_ms:<15.4f} {len(bfs_solver.visited):<15} {len(bfs_solver.path):<15}")
+    print(f"{'A* (A-Star)':<25} {time_astar_ms:<15.4f} {len(astar_solver.visited):<15} {len(astar_solver.path):<15}")
