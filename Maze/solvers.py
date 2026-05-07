@@ -1,5 +1,7 @@
-from Maze.models import Maze, Point
-from Maze.generator import MazeGenerator
+from models import Maze, Point
+from generator import MazeGenerator
+from collections import deque
+import heapq
 
 
 
@@ -143,3 +145,155 @@ class SmartMazeSolver(MazeSolver):
 #     print(my_maze.__str__(path=solver2.path))
 #     print(f"\nFinal Path Distance deadend optimization: {len(solver2.path)} steps")
 #     print(f"Total Explored Cells2: {len(solver2.visited)}")
+
+class BFSMazeSolver(MazeSolver):
+    def _reconstruct_path(self, came_from, current):
+        path = [current]
+        while current in came_from:
+            current = came_from[current]
+            path.append(current)
+        path.reverse()
+        return path
+
+    def solve(self):
+        self.path = []
+        self.visited = set()
+
+        start = self.maze.start_point
+        queue = deque([start])
+        self.visited.add(start)
+        came_from = {}
+
+        while queue:
+            current_point = queue.popleft()
+
+            if current_point == self.maze.end_point:
+                self.path = self._reconstruct_path(came_from, current_point)
+                return self.path
+
+            for neigh in self.maze.get_passable_neighbours(current_point):
+                if neigh not in self.visited:
+                    self.visited.add(neigh)
+                    came_from[neigh] = current_point
+                    queue.append(neigh)
+
+        return []
+
+    def solve_generator(self):
+        self.path = []
+        self.visited = set()
+        yield from self._bfs_generator()
+
+    def _bfs_generator(self):
+        start = self.maze.start_point
+        queue = deque([start])
+        self.visited.add(start)
+        came_from = {}
+
+        while queue:
+            current_point = queue.popleft()
+            self.path = self._reconstruct_path(came_from, current_point)
+
+            yield {"current": current_point, "visited": set(self.visited), "path": list(self.path)}
+
+            if current_point == self.maze.end_point:
+                return True
+
+            for neigh in self.maze.get_passable_neighbours(current_point):
+                if neigh not in self.visited:
+                    self.visited.add(neigh)
+                    came_from[neigh] = current_point
+                    queue.append(neigh)
+
+        yield {"current": current_point, "visited": set(self.visited), "path": list(self.path)}
+        return False
+
+
+class AStarMazeSolver(MazeSolver):
+    def _heuristic(self, p1: Point, p2: Point) -> int:
+        return abs(p1.x - p2.x) + abs(p1.y - p2.y)
+
+    def _reconstruct_path(self, came_from, current):
+        path = [current]
+        while current in came_from:
+            current = came_from[current]
+            path.append(current)
+        path.reverse()
+        return path
+
+    def solve(self):
+        self.path = []
+        self.visited = set()
+
+        start = self.maze.start_point
+        end = self.maze.end_point
+
+        counter = 0
+        queue = [(self._heuristic(start, end), counter, start)]
+        g_scores = {start: 0}
+        came_from = {}
+
+        while queue:
+            _, _, current_point = heapq.heappop(queue)
+
+            if current_point in self.visited:
+                continue
+
+            self.visited.add(current_point)
+
+            if current_point == end:
+                self.path = self._reconstruct_path(came_from, current_point)
+                return self.path
+
+            cur_g = g_scores[current_point]
+            for neigh in self.maze.get_passable_neighbours(current_point):
+                tentative_g = cur_g + 1
+
+                if neigh not in g_scores or tentative_g < g_scores[neigh]:
+                    g_scores[neigh] = tentative_g
+                    came_from[neigh] = current_point
+                    counter += 1
+                    heapq.heappush(queue, (tentative_g + self._heuristic(neigh, end), counter, neigh))
+
+        return []
+
+    def solve_generator(self):
+        self.path = []
+        self.visited = set()
+        yield from self._astar_generator()
+
+    def _astar_generator(self):
+        start = self.maze.start_point
+        end = self.maze.end_point
+
+        counter = 0
+        queue = [(self._heuristic(start, end), counter, start)]
+        g_scores = {start: 0}
+        came_from = {}
+
+        while queue:
+            _, _, current_point = heapq.heappop(queue)
+
+            if current_point in self.visited:
+                continue
+
+            self.visited.add(current_point)
+            self.path = self._reconstruct_path(came_from, current_point)
+
+            yield {"current": current_point, "visited": set(self.visited), "path": list(self.path)}
+
+            if current_point == end:
+                return True
+
+            cur_g = g_scores[current_point]
+            for neigh in self.maze.get_passable_neighbours(current_point):
+                tentative_g = cur_g + 1
+
+                if neigh not in g_scores or tentative_g < g_scores[neigh]:
+                    g_scores[neigh] = tentative_g
+                    came_from[neigh] = current_point
+                    counter += 1
+                    heapq.heappush(queue, (tentative_g + self._heuristic(neigh, end), counter, neigh))
+
+        yield {"current": current_point, "visited": set(self.visited), "path": list(self.path)}
+        return False
