@@ -20,6 +20,8 @@ def generate_graph(number_of_vertices:int,
         number_of_vertices (int): Number of vertices in the graph.
         chance_of_edge_generation (float | int): Probability of creating an edge
             between two vertices (value between 0 and 1).
+        seed (int | None): Optional RNG seed for reproducible output.
+            None means non-deterministic.
 
     Returns:
         Graph: A randomly generated graph with edges.

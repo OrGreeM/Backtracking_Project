@@ -5,34 +5,7 @@ Uses MRV (Minimum Remaining Values) heuristic with degree tie-breaking
 and Forward Checking for constraint propagation.
 """
 
-from graph_coloring.generate_graph import generate_graph
-from graph_coloring.graph import Graph
-from graph_coloring.graph_converter import convert
-
-def main(n:int, p:int|float, k:int, graph:Graph|list[list[int]]=None):
-    """
-    Generates a random graph or uses a provided one, then attempts
-    to color it with k colors.
-
-    If a graph is provided as an adjacency matrix, it will be converted
-    into a Graph instance.
-
-    Args:
-        n (int): Number of vertices (used only if graph is not provided).
-        p (int | float): Probability of edge creation (used only if graph is not provided).
-        k (int): Number of available colors.
-        graph (Graph | list[list[int]], optional): Predefined graph or adjacency matrix.
-
-    Returns:
-        tuple: (Graph instance, coloring dict or None if no valid coloring exists)
-    """
-    if graph is None:
-        graph = generate_graph(n, p)
-
-    else:
-        graph = convert(graph)
-
-    return graph, color_graph(k, graph)
+from graph import Graph
 
 
 def color_graph(k:int, graph:Graph) -> dict[int | str, int] | None:

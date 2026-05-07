@@ -5,35 +5,7 @@ Includes utilities to generate a graph and attempt to assign colors
 to its vertices such that no adjacent vertices share the same color.
 """
 
-from graph_coloring.generate_graph import generate_graph
-from graph_coloring.graph import Graph, Vertex
-from graph_coloring.graph_converter import convert
-
-def main(n:int, p:int|float, k:int, graph:Graph|list[list[int]]=None):
-    """
-    Generates a random graph or uses a provided one, then attempts
-    to color it with k colors.
-
-    If a graph is provided as an adjacency matrix, it will be converted
-    into a Graph instance.
-
-    Args:
-        n (int): Number of vertices (used only if graph is not provided).
-        p (int | float): Probability of edge creation (used only if graph is not provided).
-        k (int): Number of available colors.
-        graph (Graph | list[list[int]], optional): Predefined graph or adjacency matrix.
-
-    Returns:
-        tuple: (Graph instance, coloring dict or None if no valid coloring exists)
-    """
-    if graph is None:
-        graph = generate_graph(n, p)
-
-    else:
-        graph = convert(graph)
-
-    return graph, color_graph(k, graph)
-
+from graph import Graph, Vertex
 
 
 def _is_valid(vertex:Vertex, color:int, colors: dict[int | str, int]) -> bool:

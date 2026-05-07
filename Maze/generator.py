@@ -1,4 +1,4 @@
-from Maze.models import Maze, Point
+from models import Maze, Point
 import random
 
 class MazeGenerator:
@@ -50,7 +50,7 @@ class MazeGenerator:
                 p = Point(r, c)
                 if self.maze.is_wall(p):
                     inner_walls.append(p)
-                    
+
         num_to_destroy = int(len(inner_walls) * percentage)
         if num_to_destroy > 0:
             walls_to_destroy = random.sample(inner_walls, num_to_destroy)
