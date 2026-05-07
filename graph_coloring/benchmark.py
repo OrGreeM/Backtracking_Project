@@ -12,7 +12,7 @@ Algorithms compared:
     - Greedy (Welsh-Powell)       (graph_coloring_baselines.greedy_color)
     - DFS coloring                (graph_coloring_baselines.dfs_color)
 
-Per-run timeout: 300 seconds, enforced via a child process.
+Per-run timeout: TIMEOUT_SECONDS (see below), enforced via a child process.
 """
 
 import multiprocessing as mp
@@ -21,19 +21,19 @@ import time
 import tracemalloc
 from typing import Callable
 
-import graph_coloring
-import graph_coloring_optimized
-import graph_coloring_baselines
+import graph_coloring as bt_simple
+import graph_coloring_optimized as bt_mrv
+import graph_coloring_baselines as baselines
 from benchmark_suite import BENCHMARK_CASES
 
 
 TIMEOUT_SECONDS = 1000
 
 ALGORITHMS:list[tuple[str, Callable]] = [
-    ('Simple BT',     graph_coloring.color_graph),
-    ('MRV + FC',      graph_coloring_optimized.color_graph),
-    ('Greedy (W-P)',  graph_coloring_baselines.greedy_color),
-    ('DFS',           graph_coloring_baselines.dfs_color),
+    ('Simple BT',     bt_simple.color_graph),
+    ('MRV + FC',      bt_mrv.color_graph),
+    ('Greedy (W-P)',  baselines.greedy_color),
+    ('DFS',           baselines.dfs_color),
 ]
 
 

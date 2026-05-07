@@ -170,6 +170,5 @@ def show_animation(graph:Graph, k:int,
 if __name__ == '__main__':
     from benchmark_suite import build_mycielski
     g = build_mycielski(4)
-    show_animation(g, k=4, title='Backtracking algorythm on Mycielski M4 (k = 4 = χ)')
-    g = build_mycielski(3)
-    show_animation(g, k=2, title='Backtracking algorythm on Mycielski M4 (k = 3 = χ)')
+    show_animation(g, k=4, title='Backtracking algorithm on Mycielski M4 (k = 4 = χ)')
+    show_animation(g, k=3, title='Backtracking algorithm on Mycielski M4 (k = 3 < χ)')
