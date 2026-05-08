@@ -1,17 +1,156 @@
-import sys, time, copy, argparse
+import sys, time, copy, argparse, random
 sys.setrecursionlimit(100000)
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib.widgets import Button, Slider
 
+
 parser = argparse.ArgumentParser(description="Crossword CSP Solver")
 parser.add_argument("--no-vis", action="store_true", help="Не показувати візуалізацію")
 parser.add_argument("--algs", nargs="+", choices=["basic", "fc", "mrv", "mrv_fc"],
                     default=["basic", "fc", "mrv", "mrv_fc"], help="Алгоритми для запуску")
+parser.add_argument("--grid-size", type=int, default=None, metavar="N",
+                    help="Розмір випадкової сітки N×N (наприклад, 5, 6, 7)")
+parser.add_argument("--block-ratio", type=float, default=0.25, metavar="R",
+                    help="Частка заблокованих клітинок для випадкової сітки (0.0–0.5, default: 0.25)")
+parser.add_argument("--seed", type=int, default=None, help="Seed для генерації випадкової сітки")
+parser.add_argument("--words-file", type=str, default=None, metavar="PATH",
+                    help="Шлях до текстового файлу зі словами (по одному на рядок). Default: en.txt поруч зі скриптом")
 args = parser.parse_args()
 
-GRID_TEMPLATE = ['....', '.##.', '.##.', '.##.', '....']
-WORDS_DB = ['AURA', 'AXIS', 'BABY', 'BACK', 'BARD', 'BARE', 'BARK', 'BASE', 'BASS', 'BEAR', 'BEEF', 'BIRD', 'BLUE', 'BOAT', 'BOMB', 'BONE', 'BOOK', 'BOSS', 'BOWL', 'BULK', 'BULL', 'BUSH', 'CAKE', 'CALF', 'CAMP', 'CARD', 'CARE', 'CASH', 'CAST', 'CAVE', 'CELL', 'CHAT', 'CHEF', 'CITY', 'CLUB', 'COAL', 'COAT', 'CODE', 'COIN', 'COOK', 'COOL', 'COPE', 'COPY', 'CORE', 'CORN', 'COST', 'CRAB', 'CROP', 'CROW', 'DARK', 'DART', 'DASH', 'DATA', 'DATE', 'DAWN', 'DEAD', 'DEAL', 'DEAN', 'DEAR', 'DECK', 'DEEP', 'DEER', 'DESK', 'DIAL', 'DIET', 'DIRT', 'DISH', 'DISK', 'DIVE', 'DOCK', 'DOOR', 'DOSE', 'DOWN', 'DRAW', 'DROP', 'DUAL', 'DUST', 'DUTY', 'EACH', 'EARN', 'EASY', 'EDGE', 'EPIC', 'EVEN', 'EVER', 'EVIL', 'EXIT', 'FACE', 'FACT', 'FADE', 'FAIL', 'FAIR', 'FALL', 'FARM', 'FAST', 'FEAR', 'FEED', 'FEEL', 'FILE', 'FILL', 'FILM', 'FIND', 'FINE', 'FIRE', 'FIRM', 'FISH', 'FIVE', 'FLAG', 'FLAT', 'FLOW', 'FOLD', 'FOOD', 'FOOT', 'FORD', 'FORM', 'FUND', 'GAME', 'GANG', 'GATE', 'GEAR', 'GIFT', 'GIRL', 'GLAD', 'GOAL', 'GOES', 'GOLD', 'GOLF', 'GOOD', 'GRAY', 'GREY', 'GRIP', 'GROW', 'GULF', 'HAIR', 'HALF', 'HALL', 'HAND', 'HANG', 'HARD', 'HARM', 'HATE', 'HEAD', 'HEAL', 'HEAR', 'HEAT', 'HELP', 'HERO', 'HIDE', 'HIGH', 'HILL', 'HIRE', 'HOLD', 'HOPE', 'HOST', 'HOUR', 'HUGE', 'HUNT', 'HURT', 'IDEA', 'IRON', 'ITEM', 'JACK', 'JOIN', 'JOKE', 'JUMP', 'JURY', 'JUST', 'KEEP', 'KICK', 'KILL', 'KIND', 'KING', 'KISS', 'KNEE', 'LACK', 'LAKE', 'LAND', 'LAST', 'LATE', 'LEAD', 'LEAF', 'LEAN', 'LEFT', 'LESS', 'LIFE', 'LIFT', 'LINE', 'LINK', 'LION', 'LIST', 'LIVE', 'LOAD', 'LOAN', 'LOCK', 'LOGO', 'LONG', 'LOOK', 'LOSS', 'LOST', 'LOVE', 'LUCK', 'MAKE', 'MALE', 'MALL', 'MARK', 'MASS', 'MATH', 'MEAL', 'MEAT', 'MEET', 'MENU', 'MILD', 'MILE', 'MILK', 'MIND', 'MINE', 'MODE', 'MOON', 'MORE', 'MOST', 'MOVE', 'MUCH', 'MUST', 'NAME', 'NAVY', 'NEAR', 'NECK', 'NEED', 'NEWS', 'NICE', 'NINE', 'NONE', 'NOSE', 'NOTE', 'ONLY', 'OPEN', 'ORAL', 'OVEN', 'OVER', 'PACE', 'PAGE', 'PAIN', 'PAIR', 'PALM', 'PARK', 'PART', 'PASS', 'PAST', 'PATH', 'PEAK', 'PEER', 'PICK', 'PILL', 'PINE', 'PIPE', 'PLAN', 'PLAY', 'PLOT', 'PLUG', 'PLUS', 'POEL', 'POEM', 'POET', 'POLE', 'POOL', 'POOR', 'PORT', 'POST', 'PULL', 'PURE', 'PUSH', 'RACE', 'RAIN', 'RARE', 'RATE', 'READ', 'REAL', 'REAR', 'RELY', 'RENT', 'REST', 'RICE', 'RICH', 'RIDE', 'RING', 'RISE', 'RISK', 'ROAD', 'ROCK', 'ROLE', 'ROLL', 'ROOF', 'ROOM', 'ROOT', 'ROPE', 'ROSE', 'RULE', 'RUSH', 'SAFE', 'SAID', 'SAKE', 'SALE', 'SALT', 'SAME', 'SAND', 'SAVE', 'SEAT', 'SEED', 'SEEK', 'SEEM', 'SELL', 'SEND', 'SHIP', 'SHOE', 'SHOP', 'SHOT', 'SHOW', 'SHUT', 'SICK', 'SIDE', 'SIGN', 'SITE', 'SIZE', 'SKIN', 'SLIP', 'SLOW', 'SNOW', 'SOFT', 'SOIL', 'SOME', 'SONG', 'SOON', 'SORT', 'SOUL', 'SOUP', 'SPOT', 'STAR', 'STAY', 'STEP', 'STOP', 'SUCH', 'SUIT', 'SURE', 'TAKE', 'TALE', 'TALK', 'TALL', 'TANK', 'TAPE', 'TASK', 'TEAM', 'TEAR', 'TELL', 'TEND', 'TENT', 'TERM', 'TEST', 'TEXT', 'THAN', 'THAT', 'THEN', 'THEY', 'THIN', 'THIS', 'THUS', 'TILL', 'TIME', 'TINY', 'TOLD', 'TOLL', 'TONE', 'TOOK', 'TOOL', 'TOUR', 'TOWN', 'TREE', 'TRIP', 'TRUE', 'TUNE', 'TURN', 'TWIN', 'TYPE', 'UNIT', 'UPON', 'USED', 'USER', 'VAST', 'VERY', 'VICE', 'VIEW', 'VOID', 'VOTE', 'WAIT', 'WAKE', 'WALK', 'WALL', 'WANT', 'WARD', 'WASH', 'WAVE', 'WAYS', 'WEAK', 'WEAR', 'WEEK', 'WELL', 'WENT', 'WERE', 'WEST', 'WHAT', 'WHEN', 'WHOM', 'WIDE', 'WIFE', 'WILD', 'WILL', 'WIND', 'WINE', 'WING', 'WIRE', 'WISE', 'WISH', 'WITH', 'WOOD', 'WORD', 'WORK', 'WRAP', 'YARD', 'YEAR', 'YOUR', 'ZERO', 'ZONE', 'COLD', 'WARM', 'CREW', 'DOOM']
+def generate_random_grid(n, block_ratio=0.25, seed=None):
+    """Generate a random n×n crossword grid with 180° rotational symmetry.
+
+    The grid uses '.' for open cells and '#' for blocked cells.
+    Blocks are placed symmetrically so that grid[r][c] == grid[n-1-r][n-1-c].
+    After placement, isolated single-cell open slots (length 1) are removed
+    by converting them to blocks, and we ensure at least 2 valid slots exist.
+
+    Args:
+        n:           Grid side length (minimum 4).
+        block_ratio: Fraction of cells to block (0.0 – 0.5). Values above 0.5
+                     are clamped because symmetry doubles each placement.
+        seed:        Optional RNG seed for reproducibility.
+
+    Returns:
+        A list of n strings, each of length n, containing '.' and '#'.
+    """
+    if n < 4:
+        raise ValueError("Grid size must be at least 4")
+
+    rng = random.Random(seed)
+    block_ratio = max(0.0, min(block_ratio, 0.5))
+
+    grid = [['.' for _ in range(n)] for _ in range(n)]
+
+    # Collect all unique symmetric pairs of cells
+    pairs = []
+    for r in range(n):
+        for c in range(n):
+            sr, sc = n - 1 - r, n - 1 - c
+            pair = tuple(sorted(((r, c), (sr, sc))))
+            if pair not in pairs:
+                pairs.append(pair)
+
+    # Determine how many pairs to block
+    total_cells = n * n
+    target_blocks = int(total_cells * block_ratio)
+    # Each pair blocks 2 cells (or 1 if it's the centre cell of an odd grid)
+    rng.shuffle(pairs)
+
+    blocked = 0
+    for pair in pairs:
+        if blocked >= target_blocks:
+            break
+        (r1, c1), (r2, c2) = pair
+        grid[r1][c1] = '#'
+        grid[r2][c2] = '#'
+        blocked += (2 if (r1, c1) != (r2, c2) else 1)
+
+    # Clean up: remove isolated single open cells (would create length-1 "slots")
+    changed = True
+    while changed:
+        changed = False
+        for r in range(n):
+            for c in range(n):
+                if grid[r][c] != '.':
+                    continue
+                # Check horizontal span
+                h_len = 0
+                cc = c
+                while cc < n and grid[r][cc] == '.':
+                    h_len += 1
+                    cc += 1
+                cc = c - 1
+                while cc >= 0 and grid[r][cc] == '.':
+                    h_len += 1
+                    cc -= 1
+                # Check vertical span
+                v_len = 0
+                rr = r
+                while rr < n and grid[rr][c] == '.':
+                    v_len += 1
+                    rr += 1
+                rr = r - 1
+                while rr >= 0 and grid[rr][c] == '.':
+                    v_len += 1
+                    rr -= 1
+                # If the cell only belongs to runs of length 1, block it
+                if h_len <= 1 and v_len <= 1:
+                    grid[r][c] = '#'
+                    sr, sc = n - 1 - r, n - 1 - c
+                    grid[sr][sc] = '#'
+                    changed = True
+
+    return [''.join(row) for row in grid]
+
+
+DEFAULT_GRID = ['....', '.##.', '.##.', '....']
+
+if args.grid_size is not None:
+    GRID_TEMPLATE = generate_random_grid(args.grid_size, args.block_ratio, args.seed)
+    print(f"Згенерована випадкова сітка {args.grid_size}x{args.grid_size}:")
+    for row in GRID_TEMPLATE:
+        print(f"  {row}")
+else:
+    GRID_TEMPLATE = DEFAULT_GRID
+
+import os as _os
+
+_FALLBACK_WORDS = ['AURA', 'AXIS', 'BABY', 'BACK', 'BASE', 'BEAR', 'BIRD', 'BLUE', 'BOAT', 'BONE', 'BOOK', 'CAKE', 'CARD', 'CARE', 'CAVE', 'CELL', 'CITY', 'CLUB', 'COAL', 'CODE', 'DARK', 'DATA', 'DEAD', 'DESK', 'DISH', 'DIVE', 'DOOR', 'DROP', 'DUST', 'EACH', 'EARN', 'EASY', 'EDGE', 'EVIL', 'EXIT', 'FACE', 'FACT', 'FAIL', 'FAIR', 'FALL', 'FARM', 'FAST', 'FEAR', 'FILE', 'FILL', 'FILM', 'FIND', 'FINE', 'FIRE', 'FIRM', 'FISH', 'FLAG', 'FLAT', 'FLOW', 'FOLD', 'FOOD', 'FOOT', 'FORM', 'FUND', 'GAME', 'GATE', 'GEAR', 'GIFT', 'GIRL', 'GOAL', 'GOLD', 'GOOD', 'HAIR', 'HALF', 'HALL', 'HAND', 'HARD', 'HARM', 'HEAD', 'HEAL', 'HEAR', 'HEAT', 'HELP', 'HERO', 'HIDE', 'HIGH', 'HILL', 'HOLD', 'HOPE', 'HOST', 'HOUR', 'HUGE', 'HUNT', 'HURT', 'IDEA', 'IRON', 'ITEM', 'JACK', 'JOIN', 'JOKE', 'JUMP', 'JUST', 'KEEP', 'KICK', 'KILL', 'KIND', 'KING', 'KISS', 'KNEE', 'LACK', 'LAKE', 'LAND', 'LAST', 'LATE', 'LEAD', 'LEAF', 'LEAN', 'LEFT', 'LESS', 'LIFE', 'LIFT', 'LINE', 'LINK', 'LION', 'LIST', 'LIVE', 'LOAD', 'LOAN', 'LOCK', 'LONG', 'LOOK', 'LOSS', 'LOST', 'LOVE', 'LUCK', 'MAKE', 'MALE', 'MALL', 'MARK', 'MASS', 'MATH', 'MEAL', 'MEAT', 'MEET', 'MILD', 'MILE', 'MILK', 'MIND', 'MINE', 'MODE', 'MOON', 'MORE', 'MOST', 'MOVE', 'MUCH', 'MUST', 'NAME', 'NAVY', 'NEAR', 'NECK', 'NEED', 'NEWS', 'NICE', 'NINE', 'NONE', 'NOSE', 'NOTE', 'ONLY', 'OPEN', 'ORAL', 'OVEN', 'OVER', 'PACE', 'PAGE', 'PAIN', 'PAIR', 'PALM', 'PARK', 'PART', 'PASS', 'PAST', 'PATH', 'PEAK', 'PICK', 'PILL', 'PINE', 'PIPE', 'PLAN', 'PLAY', 'PLOT', 'PLUG', 'PLUS', 'POEM', 'POET', 'POLE', 'POOL', 'POOR', 'PORT', 'POST', 'PULL', 'PURE', 'PUSH', 'RACE', 'RAIN', 'RARE', 'RATE', 'READ', 'REAL', 'RENT', 'REST', 'RICE', 'RICH', 'RIDE', 'RING', 'RISE', 'RISK', 'ROAD', 'ROCK', 'ROLE', 'ROLL', 'ROOF', 'ROOM', 'ROOT', 'ROPE', 'ROSE', 'RULE', 'RUSH', 'SAFE', 'SAID', 'SAKE', 'SALE', 'SALT', 'SAME', 'SAND', 'SAVE', 'SEAT', 'SEED', 'SEEK', 'SEEM', 'SELL', 'SEND', 'SHIP', 'SHOE', 'SHOP', 'SHOT', 'SHOW', 'SHUT', 'SICK', 'SIDE', 'SIGN', 'SITE', 'SIZE', 'SKIN', 'SLIP', 'SLOW', 'SNOW', 'SOFT', 'SOIL', 'SOME', 'SONG', 'SOON', 'SORT', 'SOUL', 'SOUP', 'SPOT', 'STAR', 'STAY', 'STEP', 'STOP', 'SUCH', 'SUIT', 'SURE', 'TAKE', 'TALE', 'TALK', 'TALL', 'TANK', 'TAPE', 'TASK', 'TEAM', 'TEAR', 'TELL', 'TEND', 'TENT', 'TERM', 'TEST', 'TEXT', 'THAN', 'THAT', 'THEN', 'THEY', 'THIN', 'THIS', 'TILL', 'TIME', 'TINY', 'TOLD', 'TOLL', 'TONE', 'TOOK', 'TOOL', 'TOUR', 'TOWN', 'TREE', 'TRIP', 'TRUE', 'TUNE', 'TURN', 'TWIN', 'TYPE', 'UNIT', 'UPON', 'USED', 'USER', 'VAST', 'VERY', 'VICE', 'VIEW', 'VOID', 'VOTE', 'WAIT', 'WAKE', 'WALK', 'WALL', 'WANT', 'WARD', 'WASH', 'WAVE', 'WEAK', 'WEAR', 'WEEK', 'WELL', 'WENT', 'WERE', 'WEST', 'WHAT', 'WHEN', 'WHOM', 'WIDE', 'WIFE', 'WILD', 'WILL', 'WIND', 'WINE', 'WING', 'WIRE', 'WISE', 'WISH', 'WITH', 'WOOD', 'WORD', 'WORK', 'WRAP', 'YARD', 'YEAR', 'YOUR', 'ZERO', 'ZONE', 'COLD', 'WARM', 'CREW', 'DOOM']
+
+def _load_words(path=None):
+    """Load words from a text file (one word per line).
+
+    Words are uppercased and filtered to alphabetic-only characters.
+    Duplicates are removed while preserving order.
+    Falls back to the built-in word list if the file cannot be read.
+    """
+    if path is None:
+        # Default: en.txt next to this script
+        path = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), 'en.txt')
+    try:
+        seen = set()
+        words = []
+        with open(path, encoding='utf-8', errors='ignore') as fh:
+            for line in fh:
+                w = line.strip().upper()
+                if w.isalpha() and w not in seen:
+                    seen.add(w)
+                    words.append(w)
+        if not words:
+            raise ValueError('File is empty or contains no valid words')
+        print(f'Loaded {len(words):,} words from "{_os.path.basename(path)}"')
+        return words
+    except (OSError, ValueError) as e:
+        print(f'Warning: could not load words file ({e}). Using built-in word list.')
+        return list(_FALLBACK_WORDS)
+
+WORDS_DB = _load_words(args.words_file)
+WORDS_BY_LEN = {}
+for w in WORDS_DB:
+    WORDS_BY_LEN.setdefault(len(w), []).append(w)
+
 N_ROWS = len(GRID_TEMPLATE)
 N_COLS = len(GRID_TEMPLATE[0])
 
@@ -110,8 +249,8 @@ def solve_basic():
             steps.append(('sol', copy.deepcopy(board)))
             return True
         slot = SLOTS[idx]
-        for word in WORDS_DB:
-            if len(word) != slot.length or word in assigned_words:
+        for word in WORDS_BY_LEN.get(slot.length, []):
+            if word in assigned_words:
                 continue
             s['nodes'] += 1
             if fits(word, slot):
@@ -133,7 +272,7 @@ def solve_basic():
 def solve_fc():
     steps, s = ([], {'nodes': 0, 'backs': 0, 'solutions': 0, 'ms': 0})
     board = [list(row) for row in GRID_TEMPLATE]
-    domains = {slot.id: set((w for w in WORDS_DB if len(w) == slot.length)) for slot in SLOTS}
+    domains = {slot.id: set(WORDS_BY_LEN.get(slot.length, [])) for slot in SLOTS}
 
     def place(word, slot):
         old_chars = []
@@ -215,7 +354,7 @@ def solve_mrv():
         return True
 
     def get_domain(slot):
-        return [w for w in WORDS_DB if len(w) == slot.length and w not in assigned_words and fits(w, slot)]
+        return [w for w in WORDS_BY_LEN.get(slot.length, []) if w not in assigned_words and fits(w, slot)]
 
     def place(word, slot):
         old_chars = []
@@ -261,7 +400,7 @@ def solve_mrv():
 def solve_mrv_fc():
     steps, s = ([], {'nodes': 0, 'backs': 0, 'solutions': 0, 'ms': 0})
     board = [list(row) for row in GRID_TEMPLATE]
-    domains = {slot.id: set((w for w in WORDS_DB if len(w) == slot.length)) for slot in SLOTS}
+    domains = {slot.id: set(WORDS_BY_LEN.get(slot.length, [])) for slot in SLOTS}
 
     def place(word, slot):
         old_chars = []
@@ -355,6 +494,18 @@ ALGO_SHORT = ['Базовий\nбектрекінг', 'Forward\nChecking', 'MRV'
 active_clr = [ALGO_CLR[idx_mapping[k]] for k in args.algs]
 active_short = [ALGO_SHORT[idx_mapping[k]] for k in args.algs]
 
+# Collapse consecutive identical boards per algorithm to cut redundant frames
+def _dedup(steps):
+    """Remove consecutive duplicate board states, keeping first and last."""
+    out = [steps[0]]
+    for ev, bd in steps[1:]:
+        if bd != out[-1][1]:
+            out.append((ev, bd))
+        elif ev == 'sol':          # always keep the solution frame
+            out.append((ev, bd))
+    return out
+
+all_steps = [_dedup(s) for s in all_steps]
 max_frames = max((len(s) for s in all_steps))
 fig_cmp, axs = plt.subplots(1, 3, figsize=(14, 5), facecolor=BG)
 fig_cmp.suptitle('Порівняння алгоритмів  ·  Crossword CSP', color='white', fontsize=14, fontweight='bold')
@@ -463,8 +614,17 @@ sld_spd.on_changed(on_spd)
 
 def tick():
     if running[0]:
-        frame[0] = (frame[0] + 1) % max_frames
-        render(frame[0])
+        next_f = frame[0] + 1
+        if next_f >= max_frames:
+            # reached the end — stop and show final frame
+            running[0] = False
+            btn_pp.label.set_text('Далі')
+            frame[0] = max_frames - 1
+            render(frame[0])
+            timer.stop()
+        else:
+            frame[0] = next_f
+            render(frame[0])
 timer = fig_anim.canvas.new_timer(interval=125)
 timer.add_callback(tick)
 timer.start()
