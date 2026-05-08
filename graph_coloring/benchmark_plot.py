@@ -9,13 +9,13 @@ import matplotlib.patches as mpatches
 import matplotlib.ticker as mticker
 import numpy as np
 
-# ── Style ─────────────────────────────────────────────────────────────────────
+
 BG, PANEL, GRID = '#0d1117', '#161b22', '#30363d'
 A_CLR = ['#e8a838', '#4a9eff', '#c678dd', '#2ea043']
 ALGS  = ['Simple BT', 'MRV + FC', 'Greedy W-P', 'DFS']
 NaN   = float('nan')
 
-# ── Labels ────────────────────────────────────────────────────────────────────
+
 CASES = [
     'K15',    'C51',    'C100',   'K20.20', 'tree30',   # structural
     'rnd20',  'rnd50',  'rnd100',                        # random
@@ -33,7 +33,6 @@ CAT_LBL = ['Structural\n(χ known)', 'Random\n(k>χ)',
             'Tight / Impossible', 'Large graphs', 'Myciel']
 CAT_CTR = [2.0, 6.0, 9.0, 12.5, 15.0]
 
-# ── Data ──────────────────────────────────────────────────────────────────────
 TIME = np.array([   # milliseconds
     [0.307, 0.354, 0.730, 0.339, 0.210,  0.198, 0.667,   1.9,
      1610., 16010., 306000.,   8.6,  19.6,  50.7,  258.3,  39.2],
@@ -63,7 +62,7 @@ NCOLS = np.array([  # colours used  (NaN = no solution)
     [15, 3, 2, 2, 2,   5,  9, 15,  NaN, NaN, NaN,   9,  7, 47, NaN, 10],
 ])
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+
 def _style(ax, title, ylabel, log=False):
     ax.set_facecolor(PANEL)
     ax.set_title(title, color='white', fontsize=9.5, fontweight='bold', pad=5)
@@ -84,7 +83,6 @@ def _cats(ax):
         ax.axvline(b, color=GRID, lw=1, ls=':', alpha=0.8, zorder=1)
 
 
-# ── Figure ────────────────────────────────────────────────────────────────────
 fig = plt.figure(figsize=(22, 13), facecolor=BG)
 fig.suptitle('Graph Coloring — Algorithm Benchmark', color='white',
              fontsize=14, fontweight='bold', y=0.99)
@@ -218,7 +216,7 @@ ax_sc.legend(fontsize=7, facecolor=PANEL, edgecolor=GRID,
              labelcolor='white', loc='upper left')
 
 # ── Save ──────────────────────────────────────────────────────────────────────
-out = 'graph_coloring/benchmark_plot.png'
+out = 'benchmark_plot.png'
 plt.savefig(out, dpi=150, bbox_inches='tight', facecolor=BG, edgecolor='none')
 print(f'Saved -> {out}')
 plt.show()

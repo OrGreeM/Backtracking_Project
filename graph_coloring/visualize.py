@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import networkx as nx
 
-from graph_coloring.graph import Graph
+from graph import Graph
 
 COLOR_PALETTE = [
     '#e74c3c', '#3498db', '#2ecc71', '#f39c12',
