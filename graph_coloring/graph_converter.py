@@ -3,7 +3,7 @@ module helps to convert an adjacency matrix
 to self implementation of graph in module graph.py
 """
 
-from graph_coloring.graph import Graph
+from graph import Graph
 
 def validate(adjacency_matrix: list[list[int]]) -> None:
     """

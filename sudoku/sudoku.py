@@ -60,7 +60,7 @@ def boardcopy(board: list[list[int]]) -> list[list[int]]:
 class PureBacktracking:
     '''Classic DFS backtracking'''
 
-    def _init__(self):
+    def __init__(self):
         self.steps = 0
         self.backtracks = 0
 
@@ -102,7 +102,7 @@ for r in range(9):
 class BacktrackingMRV:
     ''''Backtracking with Minimum Remaining Values'''
 
-    def _init__(self):
+    def __init__(self):
         self.steps = 0
         self.backtracks = 0
 
@@ -168,7 +168,7 @@ class BacktrackingMRV:
 class BacktrackingMRVFC:
     '''Backtracking with MRV + Forward Checking'''
 
-    def _init__(self):
+    def __init__(self):
         self.steps = 0
         self.backtracks = 0
 
@@ -238,7 +238,7 @@ class BacktrackingMRVFC:
 class GreedySolver:
     '''Greedy algorithm'''
 
-    def _init__(self):
+    def __init__(self):
         self.steps = 0
         self.backtracks = 0
 
@@ -356,9 +356,9 @@ def run_benchmark(puzzle: list[list[int]], difficulty: str) -> None:
     for name, AlgClass in algorithms:
         board = boardcopy(puzzle)
         alg = AlgClass()
-        t0 = time.perfcounter()
+        t0 = time.perf_counter()
         solved = alg.solve(board)
-        elapsed = (time.perfcounter() - t0) * 1000
+        elapsed = (time.perf_counter() - t0) * 1000
         status = '✓' if solved else '✗'
         print(f'  {status} {name:<27} {alg.steps:>8,} {alg.backtracks:>11,} {elapsed:>9.2f}')
 
@@ -399,9 +399,9 @@ def solvepuzzle(puzzle: list[list[int]], algorithm: str = 'mrv_fc') -> dict:
     AlgClass = alg_map.get(algorithm, BacktrackingMRVFC)
     board = boardcopy(puzzle)
     alg = AlgClass()
-    t0 = time.perfcounter()
+    t0 = time.perf_counter()
     solved = alg.solve(board)
-    elapsed = (time.perfcounter() - t0) * 1000
+    elapsed = (time.perf_counter() - t0) * 1000
     return {
         'solved':      solved,
         'board':       board,
@@ -476,6 +476,7 @@ def cmd_solve(args) -> None:
         if name not in BUILTINpUZZLES:
             print(f'Error: unknown built-in '{name}'. Choose from: {', '.join(BUILTINpUZZLES)}')
             return
+
         puzzle = parse_board(BUILTINpUZZLES[name])
         label = f'Built-in puzzle: {name}'
 
@@ -551,7 +552,7 @@ def buildparser() -> 'argparse.ArgumentParser':
     parser = argparse.ArgumentParser(
         prog='sudoku',
         description='Sudoku solver — backtracking & optimisations',
-        formatterclass=argparse.RawDescriptionHelpFormatter,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog='''
 examples:
   python sudoku.py solve
@@ -569,7 +570,7 @@ examples:
     sub.required = True
 
     # solve
-    p_solve = sub.addparser('solve', help='Solve a single puzzle')
+    p_solve = sub.add_parser('solve', help='Solve a single puzzle')
 
     src = p_solve.add_mutually_exclusive_group()
     src.add_argument(
@@ -595,7 +596,7 @@ examples:
     )
 
     # benchmark
-    p_bench = sub.addparser(
+    p_bench = sub.add_parser(
         'benchmark',
         help='Compare all algorithms on one or more puzzles',
     )
@@ -617,7 +618,7 @@ examples:
     )
 
     # generate
-    p_gen = sub.addparser('generate', help='Generate and print a puzzle')
+    p_gen = sub.add_parser('generate', help='Generate and print a puzzle')
     p_gen.add_argument(
         '--difficulty', metavar='DIFF',
         choices=list(DIFFICULTY),
