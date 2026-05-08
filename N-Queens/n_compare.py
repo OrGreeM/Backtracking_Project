@@ -282,7 +282,7 @@ def draw_board(ax, board, title, color, is_sol=False, done=False):
     bw = 3.0 if is_sol else 1.5
     ax.add_patch(patches.Rectangle((0, 0), N, N, lw=bw, ec=bc, fc='none', zorder=4))
 
-    # Кольорова смужка знизу — ідентифікує алгоритм
+
     ax.add_patch(patches.Rectangle((0, -0.42), N, 0.2, lw=0, fc=color, zorder=5, alpha=0.85))
 
     if done:

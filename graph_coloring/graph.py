@@ -17,7 +17,7 @@ class Vertex:
 
     def __init__(self, key:int | str):
         self.key = key
-        self.neighbors: dict = {} # where key is key of vertex and value is vertex
+        self.neighbors: dict = {}
 
     def add_neighbor(self, other: 'Vertex'):
         """Record an edge to other"""
@@ -49,7 +49,7 @@ class Graph:
     """
 
     def __init__(self):
-        self.vertices: dict = {} # where key is key of vertex and value is vertex
+        self.vertices: dict = {}
 
     def add_vertex(self, key:int | str):
         """Insert key if missing and return the Vertex for that key."""

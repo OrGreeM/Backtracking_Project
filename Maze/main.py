@@ -94,7 +94,7 @@ def cmd_benchmark(args):
 
         print(f"  Відвідано: {len(solver.visited)},  Час: {elapsed_ms:.4f} мс,  Шлях: {len(solver.path)}")
 
-    # Summary table
+
     print("\n" + "=" * 70)
     print("ПІДСУМКОВА ТАБЛИЦЯ ПОРІВНЯННЯ")
     print("=" * 70)

@@ -50,7 +50,7 @@ def safe(board, row, col):
     return True
 
 
-steps = []   # (event: str, board_snapshot: list, node: Node)
+steps = []
 
 
 def solve(board, row, parent):
@@ -207,7 +207,7 @@ def draw_tree(vis, act, cur_id):
     ax_t.set_title('Дерево відкату  (backtracking tree)', color='white',
                    fontsize=13, fontweight='bold', pad=8)
 
-    # ребра
+
     for nid in vis:
         nd = all_nodes[nid]
         if nd.parent:
@@ -217,12 +217,12 @@ def draw_tree(vis, act, cur_id):
                       lw=(1.6 if on else 0.5),
                       alpha=(1.0 if on else 0.4), zorder=1)
 
-    # корінь
+
     ax_t.plot(ROOT.x, ROOT.y, 's', color=C_ROOT, ms=9, zorder=3, mew=0)
     ax_t.text(ROOT.x, ROOT.y + 0.1, 'start',
               ha='center', va='bottom', fontsize=7, color='#586069')
 
-    # вузли
+
     for nid in vis:
         nd = all_nodes[nid]
         if nid == cur_id:

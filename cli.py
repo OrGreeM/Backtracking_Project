@@ -34,7 +34,7 @@ import sys
 import subprocess
 import argparse
 
-# Set UTF-8 encoding for Windows terminal environments to prevent UnicodeEncodeError
+
 if sys.stdout.encoding != 'utf-8':
     try:
         sys.stdout.reconfigure(encoding='utf-8')
@@ -48,7 +48,7 @@ if sys.stderr.encoding != 'utf-8':
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Absolute paths to individual module runners
+
 SCRIPTS = {
     "crossword": os.path.join(BASE_DIR, "Crossword", "crossword.py"),
     "maze": os.path.join(BASE_DIR, "Maze", "main.py"),
@@ -58,7 +58,7 @@ SCRIPTS = {
     "graph_coloring": os.path.join(BASE_DIR, "graph_coloring", "main.py"),
 }
 
-# ANSI colors for styling the interactive CLI
+
 C_BLUE = "\033[1;34m"
 C_CYAN = "\033[1;36m"
 C_GREEN = "\033[1;32m"
@@ -102,7 +102,7 @@ def run_subcommand(script_key, args_list=None):
 
     cmd = [sys.executable, script_path] + args_list
     try:
-        # Run with standard streams connected directly
+
         subprocess.run(cmd, check=True)
     except subprocess.CalledProcessError as e:
         print(f"\n{C_RED}[ПОМИЛКА]{C_RESET} Процес завершився з кодом помилки: {e.returncode}")
@@ -352,7 +352,7 @@ def build_arg_parser():
 
     subparsers = parser.add_subparsers(dest="subcommand", help="Доступні підмодулі")
 
-    # Crossword subcommand
+
     p_crossword = subparsers.add_parser("crossword", help="Розв'язання кросвордів")
     p_crossword.add_argument("--grid-size", "-g", type=int, help="Розмір випадкової сітки")
     p_crossword.add_argument("--block-ratio", "-b", type=float, help="Частка заблокованих клітинок")
@@ -361,14 +361,14 @@ def build_arg_parser():
     p_crossword.add_argument("--algs", nargs="+", help="Алгоритми (basic, fc, mrv, mrv_fc)")
     p_crossword.add_argument("--no-vis", action="store_true", help="Вимкнути візуалізацію")
 
-    # Maze subcommand
+
     p_maze = subparsers.add_parser("maze", help="Пошук виходу з лабіринту")
     p_maze.add_argument("mode", choices=["solve", "benchmark"], help="Режим роботи")
     p_maze.add_argument("--size", "-s", type=int, default=41, help="Розмір непарної сітки")
     p_maze.add_argument("--algorithm", "-a", choices=["dfs", "smart", "bfs", "astar"], default="astar", help="Алгоритм")
     p_maze.add_argument("--show-maze", action="store_true", help="Символьний вивід в консоль")
 
-    # Sudoku subcommand
+
     p_sudoku = subparsers.add_parser("sudoku", help="Розв'язання Судоку")
     p_sudoku.add_argument("mode", choices=["solve", "benchmark", "generate"], help="Режим роботи")
     p_sudoku.add_argument("--puzzle", type=str, help="Рядок судоку з 81 символу")
@@ -379,14 +379,14 @@ def build_arg_parser():
     p_sudoku.add_argument("--show-solution", action="store_true", help="Показати рішення")
     p_sudoku.add_argument("--difficulties", nargs="+", help="Списк складностей для порівняння")
 
-    # N-Queens subcommand
+
     p_nqueens = subparsers.add_parser("nqueens", help="Задача N-ферзів")
     p_nqueens.add_argument("mode", choices=["visualize", "compare"], help="Режим роботи")
     p_nqueens.add_argument("--size", "-n", type=int, default=5, help="Розмір дошки")
     p_nqueens.add_argument("--no-vis", action="store_true", help="Вимкнути анімацію")
     p_nqueens.add_argument("--algs", nargs="+", help="Алгоритми для порівняння")
 
-    # Graph Coloring subcommand
+
     p_coloring = subparsers.add_parser("coloring", help="Розфарбування графів")
     p_coloring.add_argument("--file", type=str, help="Матриця суміжності з файлу")
     p_coloring.add_argument("--n", type=int, help="Кількість вершин випадкового графа")
@@ -398,18 +398,18 @@ def build_arg_parser():
 
 def main():
     if len(sys.argv) == 1:
-        # Launch interactive mode
+
         try:
             interactive_menu()
         except KeyboardInterrupt:
             print(f"\n\n{C_GREEN}Дякуємо за використання! Вихід...{C_RESET}\n")
             sys.exit(0)
 
-    # Direct command parsing & forwarding
+
     parser = build_arg_parser()
     args = parser.parse_args()
 
-    # Convert argparse namespace to original script argument list format
+
     forward_args = []
 
     if args.subcommand == "crossword":

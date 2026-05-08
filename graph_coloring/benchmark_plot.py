@@ -17,10 +17,10 @@ NaN   = float('nan')
 
 
 CASES = [
-    'K15',    'C51',    'C100',   'K20.20', 'tree30',   # structural
-    'rnd20',  'rnd50',  'rnd100',                        # random
-    'tight30','tight40','imposs30',                      # tight / impossible
-    'spar300','spar500','dens300', 'dens500',             # large
+    'K15',    'C51',    'C100',   'K20.20', 'tree30',
+    'rnd20',  'rnd50',  'rnd100',
+    'tight30','tight40','imposs30',
+    'spar300','spar500','dens300', 'dens500',
     'Myciel',
 ]
 N   = len(CASES)
@@ -33,7 +33,7 @@ CAT_LBL = ['Structural\n(χ known)', 'Random\n(k>χ)',
             'Tight / Impossible', 'Large graphs', 'Myciel']
 CAT_CTR = [2.0, 6.0, 9.0, 12.5, 15.0]
 
-TIME = np.array([   # milliseconds
+TIME = np.array([
     [0.307, 0.354, 0.730, 0.339, 0.210,  0.198, 0.667,   1.9,
      1610., 16010., 306000.,   8.6,  19.6,  50.7,  258.3,  39.2],
     [0.944,   6.6,  24.5,   6.6,   2.7,    1.2,   8.3,  37.8,
@@ -44,7 +44,7 @@ TIME = np.array([   # milliseconds
       0.171,  0.255,  0.185,   3.6,   3.3,  10.6,  23.0,  16.4],
 ])
 
-MEM = np.array([    # kilobytes
+MEM = np.array([
     [  1.7,   5.4,  10.5,   3.2,   3.0,   1.9,   5.4,  10.5,
        5.8,   6.2,   5.7,  22.6,  45.7,  22.6,  45.7,  95.1],
     [ 18.3,  56.6, 109.9,  42.7,  33.6,  22.2,  56.9, 266.1,
@@ -55,7 +55,7 @@ MEM = np.array([    # kilobytes
        4.0,   5.1,   4.0,  30.1,  46.7, 193.9, 580.6, 233.1],
 ])
 
-NCOLS = np.array([  # colours used  (NaN = no solution)
+NCOLS = np.array([
     [15, 3, 2, 2, 2,   5,  8, 13,    7,   7, NaN,   9,  8, 47,  80, 10],
     [15, 3, 2, 2, 2,   4,  8, 12,    7,   7, NaN,   7,  5, 45,  72, 10],
     [15, 3, 2, 2, 2,   5,  8, 12,  NaN, NaN, NaN,   8,  7, 46,  78, 10],
@@ -99,7 +99,7 @@ ax_sc = fig.add_subplot(gs[1, 2])
 
 leg_p = [mpatches.Patch(color=c, label=a) for c, a in zip(A_CLR, ALGS)]
 
-# ── 1. Execution time ─────────────────────────────────────────────────────────
+
 for i in range(4):
     ax_t.bar(xi + off[i], TIME[i], w, color=A_CLR[i], alpha=0.88, zorder=3)
 _cats(ax_t)
@@ -107,13 +107,13 @@ _style(ax_t, 'Execution Time  (ms, log)', 'ms', log=True)
 ax_t.legend(handles=leg_p, fontsize=7, facecolor=PANEL, edgecolor=GRID,
             labelcolor='white', loc='upper left', ncol=2)
 
-# ── 2. Peak memory ────────────────────────────────────────────────────────────
+
 for i in range(4):
     ax_m.bar(xi + off[i], MEM[i], w, color=A_CLR[i], alpha=0.88, zorder=3)
 _cats(ax_m)
 _style(ax_m, 'Peak Memory  (KB, log)', 'KB', log=True)
 
-# ── 3. Speedup  BT / MRV+FC ──────────────────────────────────────────────────
+
 spd  = TIME[0] / TIME[1]
 bclr = ['#2ea043' if s >= 1 else '#e8a838' for s in spd]
 bars = ax_sp.bar(xi, spd, 0.55, color=bclr, alpha=0.88, zorder=3)
@@ -135,7 +135,7 @@ for bar, s in zip(bars, spd):
                    ha='center', va='bottom', fontsize=5.5,
                    color='white', fontweight='bold', zorder=5)
 
-# ── 4. Quality heatmap ────────────────────────────────────────────────────────
+
 quality = np.full((4, N), 0.5)
 for j in range(N):
     valid = [NCOLS[i, j] for i in range(4) if not np.isnan(NCOLS[i, j])]
@@ -187,9 +187,9 @@ ax_ht.tick_params(length=0, colors='white')
 for sp in ax_ht.spines.values():
     sp.set_visible(False)
 
-# ── 5. Time vs quality scatter ────────────────────────────────────────────────
+
 ax_sc.set_facecolor(PANEL)
-IDX = [5, 6, 7, 11, 12, 13, 14, 15]   # random + large + myciel
+IDX = [5, 6, 7, 11, 12, 13, 14, 15]
 
 for i, (alg, c) in enumerate(zip(ALGS, A_CLR)):
     tx, cy, sz = [], [], []
@@ -215,7 +215,7 @@ ax_sc.grid(color=GRID, ls='--', alpha=0.4, zorder=0)
 ax_sc.legend(fontsize=7, facecolor=PANEL, edgecolor=GRID,
              labelcolor='white', loc='upper left')
 
-# ── Save ──────────────────────────────────────────────────────────────────────
+
 out = 'benchmark_plot.png'
 plt.savefig(out, dpi=150, bbox_inches='tight', facecolor=BG, edgecolor='none')
 print(f'Saved -> {out}')

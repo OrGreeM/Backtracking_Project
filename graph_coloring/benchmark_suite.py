@@ -132,14 +132,14 @@ def _mycielski_step(g:Graph) -> Graph:
             new_g.add_edge(shadow_idx[v], ni)
             new_g.add_edge(vi, shadow_idx[nb])
 
-    # Apex connects to every shadow
+
     for v in original:
         new_g.add_edge(shadow_idx[v], apex_idx)
 
     return new_g
 
 
-# Each entry: (name, graph, k_to_try, expected_chromatic)
+
 
 BENCHMARK_CASES = [
     ('K15',                build_complete(15),                    15, 15),

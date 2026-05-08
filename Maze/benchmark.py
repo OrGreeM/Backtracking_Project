@@ -22,7 +22,7 @@ if __name__ == "__main__":
     maze_for_bfs = copy.deepcopy(original_maze)
     maze_for_astar = copy.deepcopy(original_maze)
 
-    # 1. Classic DFS
+
     classic_solver = MazeSolver(maze_for_classic)
     start_time_classic = time.perf_counter()
     classic_solver.solve()
@@ -34,7 +34,7 @@ if __name__ == "__main__":
     print(f"Час виконання: {time_classic_ms:.4f} мс")
     print(f"Довжина знайденого шляху: {len(classic_solver.path)}")
 
-    # 2. Smart DFS
+
     sm_solver = SmartMazeSolver(maze_for_smart)
     start_sm = time.perf_counter()
     sm_solver.solve()
@@ -46,7 +46,7 @@ if __name__ == "__main__":
     print(f"Загальний час виконання (з обробкою): {time_sm_ms:.4f} мс")
     print(f"Довжина знайденого шляху: {len(sm_solver.path)}")
 
-    # 3. BFS
+
     bfs_solver = BFSMazeSolver(maze_for_bfs)
     start_bfs = time.perf_counter()
     bfs_solver.solve()
@@ -58,7 +58,7 @@ if __name__ == "__main__":
     print(f"Час виконання: {time_bfs_ms:.4f} мс")
     print(f"Довжина знайденого шляху: {len(bfs_solver.path)}")
 
-    # 4. A*
+
     astar_solver = AStarMazeSolver(maze_for_astar)
     start_astar = time.perf_counter()
     astar_solver.solve()
@@ -70,7 +70,7 @@ if __name__ == "__main__":
     print(f"Час виконання: {time_astar_ms:.4f} мс")
     print(f"Довжина знайденого шляху: {len(astar_solver.path)}")
 
-    # Summary table
+
     print("\n" + "="*70)
     print("ПІДСУМКОВА ТАБЛИЦЯ ПОРІВНЯННЯ")
     print("="*70)

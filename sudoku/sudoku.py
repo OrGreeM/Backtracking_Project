@@ -126,7 +126,7 @@ class BacktrackingMRV:
                 if board[r][c] == 0:
                     n = len(cands[r][c])
                     if n == 0:
-                        return None        # Dead end
+                        return None
                     if n < bestcount:
                         bestcount, best = n, (r, c)
         return best
@@ -155,7 +155,7 @@ class BacktrackingMRV:
                     removed.append((pr, pc))
             if self._solve(board, cands):
                 return True
-            # Undo placement and restore candidate sets
+
             board[row][col] = 0
             cands[row][col] = saved_own
             for (pr, pc) in removed:
@@ -337,7 +337,7 @@ def fill_diagonal_boxes(board: list[list[int]]) -> None:
                 board[start + i][start + j] = digits[i * 3 + j]
 
 
-# Benchmark with the results
+
 
 def run_benchmark(puzzle: list[list[int]], difficulty: str) -> None:
     algorithms = [
@@ -365,7 +365,7 @@ def run_benchmark(puzzle: list[list[int]], difficulty: str) -> None:
     print(f'{'═' * 60}')
 
 
-#  Interactive solver (manual input)
+
 
 def parse_board(flat: str) -> list[list[int]]:
     '''
@@ -444,7 +444,7 @@ ALG_NAMES = {
 }
 
 
-#  CLI subcommand handlers
+
 
 def cmd_solve(args) -> None:
     '''
@@ -455,7 +455,7 @@ def cmd_solve(args) -> None:
       --builtin  name from BUILTINpUZZLES
       --generate difficulty level  (random puzzle)
     '''
-    # Obtain the puzzle
+
     if args.puzzle:
         try:
             puzzle = parse_board(args.puzzle)
@@ -480,10 +480,10 @@ def cmd_solve(args) -> None:
         puzzle = parse_board(BUILTINpUZZLES[name])
         label = f'Built-in puzzle: {name}'
 
-    # Print input board
+
     print_board(puzzle, f'{label} — input')
 
-    # Solve
+
     algo = args.algo or 'mrv_fc'
     result = solvepuzzle(puzzle, algorithm=algo)
 
@@ -544,7 +544,7 @@ def cmd_generate(args) -> None:
         print_board(solution, 'Solution')
 
 
-#  argparse setup
+
 
 def buildparser() -> 'argparse.ArgumentParser':
     import argparse
@@ -569,7 +569,7 @@ examples:
     sub = parser.add_subparsers(dest='command', metavar='COMMAND')
     sub.required = True
 
-    # solve
+
     p_solve = sub.add_parser('solve', help='Solve a single puzzle')
 
     src = p_solve.add_mutually_exclusive_group()
@@ -595,7 +595,7 @@ examples:
         help='Algorithm to use (default: mrv_fc). Choices: %(choices)s',
     )
 
-    # benchmark
+
     p_bench = sub.add_parser(
         'benchmark',
         help='Compare all algorithms on one or more puzzles',
@@ -617,7 +617,7 @@ examples:
         help='Generate random puzzles at these difficulties (default: all four)',
     )
 
-    # generate
+
     p_gen = sub.add_parser('generate', help='Generate and print a puzzle')
     p_gen.add_argument(
         '--difficulty', metavar='DIFF',

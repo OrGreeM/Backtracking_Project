@@ -126,25 +126,25 @@ class SmartMazeSolver(MazeSolver):
 
 
 
-# if __name__ == "__main__":
-#     import sys
-
-#     sys.setrecursionlimit(100_000)
-#     generator = MazeGenerator(41, 41)
-#     my_maze = generator.generate()
-
-#     solver = MazeSolver(my_maze)
-#     solver.solve()
-#     print(my_maze.__str__(path=solver.path))
-#     print(f"\nFinal Path Distance unoptimized: {len(solver.path)} steps")
-#     print(f"Total Explored Cells1: {len(solver.visited)}")
 
 
-#     solver2 = OptimizedMazeSolver(my_maze)
-#     solver2.solve()
-#     print(my_maze.__str__(path=solver2.path))
-#     print(f"\nFinal Path Distance deadend optimization: {len(solver2.path)} steps")
-#     print(f"Total Explored Cells2: {len(solver2.visited)}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 class BFSMazeSolver(MazeSolver):
     def _reconstruct_path(self, came_from, current):

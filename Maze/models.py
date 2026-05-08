@@ -2,7 +2,7 @@ from random import randint
 
 class Point:
     def __init__(self, x, y):
-        # x - row, y - col
+
         self.x = x
         self.y = y
 
@@ -32,9 +32,9 @@ class Maze:
     def is_in_bounds(self, point: Point) -> bool:
         if not isinstance(point, Point):
             return False
-            #raise ValueError("is_in_bounds expects a Point class")
+
         return 0 <= point.x < self.height and 0 <= point.y < self.width
-        #return IndexError("Point out of bounds")
+
 
 
     def is_wall(self, point: Point) -> bool:

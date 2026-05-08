@@ -43,7 +43,7 @@ def generate_random_grid(n, block_ratio=0.25, seed=None):
 
     grid = [['.' for _ in range(n)] for _ in range(n)]
 
-    # Collect all unique symmetric pairs of cells
+
     pairs = []
     for r in range(n):
         for c in range(n):
@@ -52,10 +52,10 @@ def generate_random_grid(n, block_ratio=0.25, seed=None):
             if pair not in pairs:
                 pairs.append(pair)
 
-    # Determine how many pairs to block
+
     total_cells = n * n
     target_blocks = int(total_cells * block_ratio)
-    # Each pair blocks 2 cells (or 1 if it's the centre cell of an odd grid)
+
     rng.shuffle(pairs)
 
     blocked = 0
@@ -67,7 +67,7 @@ def generate_random_grid(n, block_ratio=0.25, seed=None):
         grid[r2][c2] = '#'
         blocked += (2 if (r1, c1) != (r2, c2) else 1)
 
-    # Clean up: remove isolated single open cells (would create length-1 "slots")
+
     changed = True
     while changed:
         changed = False
@@ -75,7 +75,7 @@ def generate_random_grid(n, block_ratio=0.25, seed=None):
             for c in range(n):
                 if grid[r][c] != '.':
                     continue
-                # Check horizontal span
+
                 h_len = 0
                 cc = c
                 while cc < n and grid[r][cc] == '.':
@@ -85,7 +85,7 @@ def generate_random_grid(n, block_ratio=0.25, seed=None):
                 while cc >= 0 and grid[r][cc] == '.':
                     h_len += 1
                     cc -= 1
-                # Check vertical span
+
                 v_len = 0
                 rr = r
                 while rr < n and grid[rr][c] == '.':
@@ -95,7 +95,7 @@ def generate_random_grid(n, block_ratio=0.25, seed=None):
                 while rr >= 0 and grid[rr][c] == '.':
                     v_len += 1
                     rr -= 1
-                # If the cell only belongs to runs of length 1, block it
+
                 if h_len <= 1 and v_len <= 1:
                     grid[r][c] = '#'
                     sr, sc = n - 1 - r, n - 1 - c
@@ -127,7 +127,7 @@ def _load_words(path=None):
     Falls back to the built-in word list if the file cannot be read.
     """
     if path is None:
-        # Default: en.txt next to this script
+
         path = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), 'en.txt')
     try:
         seen = set()
@@ -494,14 +494,14 @@ ALGO_SHORT = ['Базовий\nбектрекінг', 'Forward\nChecking', 'MRV'
 active_clr = [ALGO_CLR[idx_mapping[k]] for k in args.algs]
 active_short = [ALGO_SHORT[idx_mapping[k]] for k in args.algs]
 
-# Collapse consecutive identical boards per algorithm to cut redundant frames
+
 def _dedup(steps):
     """Remove consecutive duplicate board states, keeping first and last."""
     out = [steps[0]]
     for ev, bd in steps[1:]:
         if bd != out[-1][1]:
             out.append((ev, bd))
-        elif ev == 'sol':          # always keep the solution frame
+        elif ev == 'sol':
             out.append((ev, bd))
     return out
 
@@ -616,7 +616,7 @@ def tick():
     if running[0]:
         next_f = frame[0] + 1
         if next_f >= max_frames:
-            # reached the end — stop and show final frame
+
             running[0] = False
             btn_pp.label.set_text('Далі')
             frame[0] = max_frames - 1

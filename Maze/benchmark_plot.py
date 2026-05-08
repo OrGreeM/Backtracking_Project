@@ -24,9 +24,9 @@ from generator import MazeGenerator
 from solvers import MazeSolver, SmartMazeSolver, BFSMazeSolver, AStarMazeSolver
 
 
-# ──────────────────────────────────────────────
-# Configuration
-# ──────────────────────────────────────────────
+
+
+
 ALL_ALGORITHMS = [
     ("DFS",       MazeSolver,       "#e74c3c"),
     ("Smart DFS", SmartMazeSolver,  "#f39c12"),
@@ -34,8 +34,8 @@ ALL_ALGORITHMS = [
     ("A*",        AStarMazeSolver,  "#2ecc71"),
 ]
 
-# Per-size config: (display_label, size, [algo_names_to_include])
-# BFS excluded from large — it trivially visits ~100% of cells
+
+
 SIZES = [
     ("Small\n41×41",    41,  ["DFS", "Smart DFS", "BFS", "A*"]),
     ("Medium\n101×101", 101, ["DFS", "Smart DFS", "BFS", "A*"]),
@@ -44,17 +44,17 @@ SIZES = [
 
 N_RUNS = 100
 
-# ──────────────────────────────────────────────
-# Lookup helpers
-# ──────────────────────────────────────────────
+
+
+
 _ALGO_MAP   = {name: cls   for name, cls, _   in ALL_ALGORITHMS}
 _COLOR_MAP  = {name: color for name, _,  color in ALL_ALGORITHMS}
 _ALL_NAMES  = [name for name, _, _ in ALL_ALGORITHMS]
 
 
-# ──────────────────────────────────────────────
-# Benchmark runner
-# ──────────────────────────────────────────────
+
+
+
 
 def run_benchmark(size: int, algo_names: list[str], n_runs: int) -> dict:
     """
@@ -85,9 +85,9 @@ def run_benchmark(size: int, algo_names: list[str], n_runs: int) -> dict:
     return results
 
 
-# ──────────────────────────────────────────────
-# Plotting helpers
-# ──────────────────────────────────────────────
+
+
+
 
 def _bar_group(ax, x_positions, x_labels, bars_data, ylabel, title, log_scale=False):
     """
@@ -150,14 +150,14 @@ def _line_scaling(ax, all_results, metric, ylabel, title):
     ax.legend(fontsize=9, framealpha=0.85)
 
 
-# ──────────────────────────────────────────────
-# Main
-# ──────────────────────────────────────────────
+
+
+
 
 def main():
     sys.setrecursionlimit(10_000_000)
 
-    all_results = []  # (label, size, algo_names, results_dict)
+    all_results = []
 
     for label, size, algo_names in SIZES:
         print(f"\n{'='*55}")
@@ -168,7 +168,7 @@ def main():
         all_results.append((label, size, algo_names, res))
         print("Done.")
 
-    # ── Aggregate for grouped bar charts ──
+
     size_labels  = [lbl for lbl, _, _, _ in all_results]
     x_positions  = np.arange(len(size_labels))
 
@@ -192,7 +192,7 @@ def main():
     visited_bars = build_bars("visited")
     path_bars    = build_bars("path")
 
-    # ── Figure layout ──
+
     fig = plt.figure(figsize=(18, 14))
     fig.suptitle(
         f"Maze Pathfinding — Benchmark Results\n"
@@ -209,23 +209,23 @@ def main():
     ax_scale_t = fig.add_subplot(gs[1, 1])
     ax_box     = fig.add_subplot(gs[2, :])
 
-    # 1. Execution time
+
     _bar_group(ax_time, x_positions, size_labels, time_bars,
                ylabel="Time (ms)", title="Execution Time (avg ± std)", log_scale=True)
 
-    # 2. Visited cells
+
     _bar_group(ax_visited, x_positions, size_labels, visited_bars,
                ylabel="Cells visited", title="Cells Visited (avg ± std)")
 
-    # 3. Path length
+
     _bar_group(ax_path, x_positions, size_labels, path_bars,
                ylabel="Path length (steps)", title="Path Length (avg ± std)")
 
-    # 4. Time scaling line chart (BFS line ends at medium)
+
     _line_scaling(ax_scale_t, all_results, "times",
                   ylabel="Time (ms)", title="Time Scaling with Maze Size")
 
-    # 5. Box plots — large maze only (algorithms that ran there)
+
     large_label, large_size, large_algos, large_res = all_results[-1]
     box_data   = [large_res[name]["times"] for name in large_algos]
     box_colors = [_COLOR_MAP[name] for name in large_algos]
@@ -250,12 +250,12 @@ def main():
     ax_box.yaxis.grid(True, linestyle="--", alpha=0.5)
     ax_box.set_axisbelow(True)
 
-    # Global legend
+
     legend_patches = [
         mpatches.Patch(facecolor=_COLOR_MAP[name], label=name, alpha=0.88)
         for name in _ALL_NAMES
     ]
-    # Mark BFS as "small/medium only"
+
     legend_patches[2] = mpatches.Patch(
         facecolor=_COLOR_MAP["BFS"], label="BFS (small & medium only)", alpha=0.88
     )

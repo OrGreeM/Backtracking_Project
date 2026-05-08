@@ -23,12 +23,12 @@ def validate(adjacency_matrix: list[list[int]]) -> None:
     """
     n = len(adjacency_matrix)
 
-    # 1. Squareness check first — must hold before indexing matrix[i][j] is safe
+
     for i, row in enumerate(adjacency_matrix):
         if len(row) != n:
             raise ValueError(f"Matrix must be square: row {i} has length {len(row)}, expected {n}")
 
-    # 2. Single pass over the upper triangle for all remaining checks
+
     for i in range(n):
         row = adjacency_matrix[i]
 
