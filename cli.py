@@ -14,6 +14,8 @@ Provides both an interactive menu-driven interface and a command-line argument r
   3. Лабіринт (Maze Pathfinding):
      python cli.py maze solve --size 41 --algorithm astar --show-maze
      python cli.py maze benchmark --size 101
+     python cli.py maze solve --size 25 --algorithm dfs smart --vis
+
 
   4. Судоку (Sudoku Solver):
      python cli.py sudoku solve --builtin escargot --algo mrv_fc
@@ -77,12 +79,12 @@ def print_banner():
     banner = f"""{C_CYAN}
  ╔══════════════════════════════════════════════════════════════════════════╗
  ║                                                                          ║
- ║   ██████╗  █████╗  ██████╗██╗  ██╗████████╗██████╗  █████╗  ██████╗██╗  ██╗ ║
- ║   ██╔══██╗██╔══██╗██╔════╝██║ ██╔╝╚══██╔══╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝ ║
- ║   ██████╔╝███████║██║     █████╔╝    ██║   ██████╔╝███████║██║     █████╔╝  ║
- ║   ██╔══██╗██╔══██║██║     ██╔═██╗    ██║   ██╔══██╗██╔══██║██║     ██╔═██╗  ║
- ║   ██████╔╝██║  ██║╚██████╗██║  ██╗   ██║   ██║  ██║██║  ██║╚██████╗██║  ██╗ ║
- ║   ╚══════╝ ╚═╝  ╚═╝ ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝ ╚══════╝╚═╝  ╚═╝ ║
+ ║██████╗  █████╗  ██████╗██╗  ██╗████████╗██████╗  █████╗  ██████╗██╗  ██╗ ║
+ ║██╔══██╗██╔══██╗██╔════╝██║ ██╔╝╚══██╔══╝██╔══██╗██╔══██╗██╔════╝██║ ██╔╝ ║
+ ║██████╔╝███████║██║     █████╔╝    ██║   ██████╔╝███████║██║     █████╔╝  ║
+ ║██╔══██╗██╔══██║██║     ██╔═██╗    ██║   ██╔══██╗██╔══██║██║     ██╔═██╗  ║
+ ║██████╔╝██║  ██║╚██████╗██║  ██╗   ██║   ██║  ██║██║  ██║╚██████╗██║  ██╗ ║
+ ║╚══════╝ ╚═╝  ╚═╝ ╚══════╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═╝ ╚═╝ ╚══════╝╚═╝╚═╝ ║
  ║                                                                          ║
  ║                       BACKTRACKING & CSP SOLVER HUB                      ║
  ╚══════════════════════════════════════════════════════════════════════════╝{C_RESET}"""
@@ -169,11 +171,15 @@ def menu_maze():
             show_text = input("Показати лабіринт символами в консолі? (y/n, за замовчуванням n): ").strip().lower() == "y"
 
             if choice == "1":
-                print(f"\n{C_CYAN}Алгоритми: dfs (класичний), smart (евристика), bfs (ширина), astar (A*){C_RESET}")
-                algo = input("Оберіть алгоритм (за замовчуванням astar): ").strip().lower() or "astar"
-                args = ["solve", "--size", size, "--algorithm", algo]
+                print(f"\n{C_CYAN}Алгоритми: dfs, smart, bfs, astar{C_RESET}")
+                algo_input = input("Оберіть алгоритми через пробіл (наприклад: 'dfs astar', за замовчуванням astar): ").strip().lower() or "astar"
+                algos = algo_input.split()
+                show_vis = input("Запустити графічну візуалізацію через Pygame? (y/n, за замовчуванням y): ").strip().lower() != "n"
+                args = ["solve", "--size", size, "--algorithm"] + algos
                 if show_text:
                     args += ["--show-maze"]
+                if show_vis:
+                    args += ["--vis"]
                 run_subcommand("maze", args)
                 input(f"\nНатисніть Enter для продовження...")
             else:
@@ -289,14 +295,14 @@ def interactive_menu():
         clear_screen()
         print_banner()
         print(f"\n  {C_CYAN}ГОЛОВНЕ МЕНЮ ПРОЄКТУ{C_RESET}")
-        print(" ╠" + "═" * 38 + "╣")
-        print(f" ║ {C_YELLOW}1.{C_RESET} 🧩 Кросворд (Crossword CSP)      ║")
+        print(" ╠" + "═" * 36 + "╣")
+        print(f" ║ {C_YELLOW}1.{C_RESET} 🧩 Кросворд (Crossword CSP)     ║")
         print(f" ║ {C_YELLOW}2.{C_RESET} 🌀 Лабіринт (Maze Pathfinding)  ║")
         print(f" ║ {C_YELLOW}3.{C_RESET} 🔢 Судоку (Sudoku Solver)       ║")
         print(f" ║ {C_YELLOW}4.{C_RESET} ♛ Задача N ферзів (N-Queens)    ║")
         print(f" ║ {C_YELLOW}5.{C_RESET} 🎨 Розфарбування графів (Graph) ║")
         print(f" ║ {C_YELLOW}6.{C_RESET} ❌ Вихід (Exit)                 ║")
-        print(" ╚" + "═" * 38 + "╝")
+        print(" ╚" + "═" * 36 + "╝")
 
         choice = input(f"\n{C_BOLD}Оберіть розділ (1-6): {C_RESET}").strip()
         if choice == "1":
@@ -365,8 +371,9 @@ def build_arg_parser():
     p_maze = subparsers.add_parser("maze", help="Пошук виходу з лабіринту")
     p_maze.add_argument("mode", choices=["solve", "benchmark"], help="Режим роботи")
     p_maze.add_argument("--size", "-s", type=int, default=41, help="Розмір непарної сітки")
-    p_maze.add_argument("--algorithm", "-a", choices=["dfs", "smart", "bfs", "astar"], default="astar", help="Алгоритм")
+    p_maze.add_argument("--algorithm", "-a", choices=["dfs", "smart", "bfs", "astar"], nargs="+", default=["astar"], help="Алгоритм(и)")
     p_maze.add_argument("--show-maze", action="store_true", help="Символьний вивід в консоль")
+    p_maze.add_argument("--vis", action="store_true", help="Запустити графічну візуалізацію через Pygame")
 
 
     p_sudoku = subparsers.add_parser("sudoku", help="Розв'язання Судоку")
@@ -430,7 +437,9 @@ def main():
     elif args.subcommand == "maze":
         forward_args += [args.mode, "--size", str(args.size)]
         if args.mode == "solve":
-            forward_args += ["--algorithm", args.algorithm]
+            forward_args += ["--algorithm"] + args.algorithm
+            if args.vis:
+                forward_args += ["--vis"]
         if args.show_maze:
             forward_args += ["--show-maze"]
         run_subcommand("maze", forward_args)
