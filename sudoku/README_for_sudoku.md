@@ -64,6 +64,9 @@ python sudoku.py solve
 | `--algo mrv_fc` | Backtracking + MRV + Forward Checking |
 | `--algo greedy` | Greedy / DFS |
 
+**Visualisation**
+| `python sudoku_vis.py` | Visualisation |
+
 **Examples:**
 
 ```bash
