@@ -474,8 +474,9 @@ def cmd_solve(args) -> None:
     else:
         name = args.builtin or 'classic'
         if name not in BUILTINpUZZLES:
-            print(f"Error: unknown built-in '{name}'. Choose from: {', '.join(BUILTINpUZZLES)}")
+            print(f'Error: unknown built-in '{name}'. Choose from: {', '.join(BUILTINpUZZLES)}')
             return
+
         puzzle = parse_board(BUILTINpUZZLES[name])
         label = f'Built-in puzzle: {name}'
 
@@ -516,7 +517,7 @@ def cmd_benchmark(args) -> None:
         elif args.builtin:
             name = args.builtin
             if name not in BUILTINpUZZLES:
-                print(f"Error: unknown built-in '{name}'.")
+                print(f'Error: unknown built-in '{name}'.')
                 return
             puzzle = parse_board(BUILTINpUZZLES[name])
             diff = name
