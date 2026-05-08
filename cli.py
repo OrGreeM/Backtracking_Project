@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Unified CLI Hub for Backtracking & CSP Workspace.
 Provides both an interactive menu-driven interface and a command-line argument router.
@@ -36,8 +34,17 @@ import sys
 import subprocess
 import argparse
 
-# Set UTF-8 encoding environment variable for Windows terminal environments
-os.environ["PYTHONUTF8"] = "1"
+# Set UTF-8 encoding for Windows terminal environments to prevent UnicodeEncodeError
+if sys.stdout.encoding != 'utf-8':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except AttributeError:
+        pass
+if sys.stderr.encoding != 'utf-8':
+    try:
+        sys.stderr.reconfigure(encoding='utf-8')
+    except AttributeError:
+        pass
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
